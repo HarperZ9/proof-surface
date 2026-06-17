@@ -126,7 +126,20 @@ def evaluate(contract: dict[str, Any], results: list[dict[str, Any]]) -> EvalDec
       block       — any required criterion is "fail"
       needs-human — no required "fail", but at least one required criterion is
                     "uncertain" or "missing"
+
+    The contract is structurally validated first (mirroring evaluate_gate /
+    check_action / verify_delegation): an invalid contract returns ``block``
+    rather than being processed, so an empty/missing criteria list or a tampered
+    direction can never silently yield ``deploy`` (default-deny / fail-closed).
     """
+    issues = validate_evaluation_contract(contract)
+    if issues:
+        return EvalDecision(
+            decision="block",
+            reasons=[f"contract invalid: {issues[0].path} — {issues[0].message}"],
+            per_criterion={},
+        )
+
     criteria: list[dict[str, Any]] = contract.get("criteria", [])
 
     # Build a lookup from result name -> result dict.
@@ -244,12 +257,16 @@ def _compare(
         if high < threshold:
             return "fail"
         return "uncertain"
-    else:  # "<="
+    elif direction == "<=":
         if high <= threshold:
             return "pass"
         if low > threshold:
             return "fail"
         return "uncertain"
+    else:
+        # Unrecognized direction — fail closed (default-deny). validate_*
+        # rejects this upstream, but _compare must not silently pick a branch.
+        return "fail"
 
 
 def _reject_forbidden(node: Any, path: str, issues: list[Issue]) -> None:

@@ -47,3 +47,35 @@ def test_conformance_fixtures_match_manifest():
             assert issues == [], f"{fixture['path']} should be valid: {issues}"
         else:
             assert issues, f"{fixture['path']} should be invalid"
+
+
+# ---------------------------------------------------------------------------
+# Hardening regressions (bulletproofing audit) — authority denylist
+# ---------------------------------------------------------------------------
+
+
+def test_lowercase_authority_token_rejected():
+    data = _valid()
+    data["notes"] = "the system is trusted by the operator"
+    assert any("authority token" in i.message for i in validate_witness_receipt(data))
+
+
+def test_underscore_adjacent_authority_token_rejected():
+    data = _valid()
+    data["notes"] = "see AUTHORIZED_role for details"
+    assert any("authority token" in i.message for i in validate_witness_receipt(data))
+
+
+def test_emet_superset_tokens_rejected():
+    for tok in ("BLESSED", "VERIFIED_AUTHORITY"):
+        data = _valid()
+        data["notes"] = f"this artifact is {tok}"
+        assert any("authority token" in i.message for i in validate_witness_receipt(data)), tok
+
+
+def test_authority_token_as_dict_key_rejected():
+    data = _valid()
+    # Inject a forbidden token as a dict key; reject_unknown also fires, but the
+    # key-scan must independently flag it as a forbidden authority token.
+    data["evidence"]["TRUSTED"] = "x"
+    assert any("authority token" in i.message for i in validate_witness_receipt(data))

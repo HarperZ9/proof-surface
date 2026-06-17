@@ -27,6 +27,7 @@ Design principles
 
 from __future__ import annotations
 
+from collections import deque
 from typing import Any
 
 from ._validate import Issue, reject_unknown, require_const, require_text
@@ -199,11 +200,11 @@ def trace_dependents(
             if isinstance(dep_id, str):
                 reverse.setdefault(dep_id, []).append(cid)
 
-    # BFS from claim_id over the reverse graph.
+    # BFS from claim_id over the reverse graph (deque for O(1) dequeue).
     visited: set[str] = set()
-    queue: list[str] = [claim_id]
+    queue: deque[str] = deque([claim_id])
     while queue:
-        current = queue.pop(0)
+        current = queue.popleft()
         for dependent in reverse.get(current, []):
             if dependent not in visited:
                 visited.add(dependent)
