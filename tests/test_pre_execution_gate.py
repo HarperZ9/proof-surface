@@ -651,3 +651,37 @@ def test_conformance_fixtures_match_manifest():
             assert issues, (
                 f"{fixture['path']} should be invalid but validate_gate_request returned no issues"
             )
+
+
+# ---------------------------------------------------------------------------
+# Hardening regressions (bulletproofing audit)
+# ---------------------------------------------------------------------------
+
+
+def test_half_digest_pair_is_structurally_rejected():
+    # Only one of target_digest/expected_digest present must not yield a silent PASS.
+    req = _valid_request(state={"target_digest": "a" * 64})
+    issues = validate_gate_request(req)
+    assert any(i.path == "$.state" for i in issues)
+    assert evaluate_gate(req).decision == peg.DENY
+
+
+def test_check_state_half_digest_is_unknown_not_pass():
+    # Directly exercise the check layer (defence in depth): one digest -> UNKNOWN.
+    result, _reasons = peg._check_state({"target_digest": "a" * 64})
+    assert result == peg.UNKNOWN
+
+
+def test_confirming_witness_verdicts_are_not_structurally_rejected():
+    for verdict in ("MATCH", "COHERENT", "CORROBORATED"):
+        req = _valid_request(state={"witness_verdict": verdict})
+        assert validate_gate_request(req) == [], verdict
+        # confirming verdict + authorized action + no budget concern -> allow
+        assert evaluate_gate(req).decision == peg.ALLOW, verdict
+
+
+def test_view_differs_and_quarantine_verdicts_deny():
+    for verdict in ("VIEW_DIFFERS_FROM_SOURCE", "QUARANTINE_READ_PATH_DIVERGENCE"):
+        req = _valid_request(state={"witness_verdict": verdict})
+        assert validate_gate_request(req) == [], verdict
+        assert evaluate_gate(req).decision == peg.DENY, verdict

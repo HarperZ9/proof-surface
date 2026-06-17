@@ -35,6 +35,7 @@ from .authorization_receipt import (
     check_action,
     validate_authorization_receipt,
 )
+from .witness_receipt import WITNESS_VERDICTS
 
 GATE_VERSION = "0.1"
 
@@ -51,10 +52,19 @@ DENY = "deny"
 NEEDS_HUMAN = "needs-human"
 DECISION_VALUES = {ALLOW, DENY, NEEDS_HUMAN}
 
-# Witness verdicts relevant to the state check.
+# Witness verdicts relevant to the state check.  The full closed lattice is
+# imported from witness_receipt (single source of truth) so a legitimate EMET
+# receipt carrying COHERENT / CORROBORATED / VIEW_DIFFERS_FROM_SOURCE /
+# QUARANTINE_READ_PATH_DIVERGENCE is not rejected as structurally invalid.
+WITNESS_MATCH = "MATCH"
 WITNESS_DRIFT = "DRIFT"
 WITNESS_UNVERIFIABLE = "UNVERIFIABLE"
-WITNESS_VERDICTS = {"MATCH", WITNESS_DRIFT, WITNESS_UNVERIFIABLE}
+WITNESS_COHERENT = "COHERENT"
+WITNESS_CORROBORATED = "CORROBORATED"
+WITNESS_VIEW_DIFFERS = "VIEW_DIFFERS_FROM_SOURCE"
+WITNESS_QUARANTINE = "QUARANTINE_READ_PATH_DIVERGENCE"
+# Verdicts that positively confirm state (PASS); everything else denies or escalates.
+WITNESS_CONFIRMING = {WITNESS_MATCH, WITNESS_COHERENT, WITNESS_CORROBORATED}
 
 # Hex digest pattern: exactly 64 lowercase hex characters.
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -306,8 +316,16 @@ def _check_state(
 
     verdict = state.get("witness_verdict")
     if verdict is not None:
-        if verdict == WITNESS_DRIFT:
+        if verdict in WITNESS_CONFIRMING:
+            pass  # positive confirmation — leaves result at PASS
+        elif verdict == WITNESS_DRIFT:
             reasons.append("state denied: witness_verdict is DRIFT — target has drifted from expected state")
+            result = FAIL
+        elif verdict == WITNESS_VIEW_DIFFERS:
+            reasons.append("state denied: witness_verdict is VIEW_DIFFERS_FROM_SOURCE — view does not match source")
+            result = FAIL
+        elif verdict == WITNESS_QUARANTINE:
+            reasons.append("state denied: witness_verdict is QUARANTINE_READ_PATH_DIVERGENCE — read path is quarantined")
             result = FAIL
         elif verdict == WITNESS_UNVERIFIABLE:
             reasons.append("state unknown: witness_verdict is UNVERIFIABLE — cannot confirm target state")
@@ -316,7 +334,16 @@ def _check_state(
 
     target_digest = state.get("target_digest")
     expected_digest = state.get("expected_digest")
-    if target_digest is not None and expected_digest is not None:
+    if (target_digest is None) != (expected_digest is None):
+        # Exactly one digest present: an observed digest with nothing to compare
+        # against (or vice versa) cannot positively confirm integrity. Fail-closed
+        # to UNKNOWN (-> needs-human), never a silent PASS.
+        reasons.append(
+            "state unknown: exactly one of target_digest/expected_digest is present — cannot confirm integrity"
+        )
+        if result != FAIL:
+            result = UNKNOWN
+    elif target_digest is not None and expected_digest is not None:
         if target_digest != expected_digest:
             reasons.append(
                 "state denied: target_digest does not match expected_digest — integrity check failed"
@@ -424,3 +451,12 @@ def _validate_state(value: Any, issues: list[Issue]) -> None:
                         "expected 64-char lowercase hex digest",
                     )
                 )
+    # A digest is only meaningful as a pair (observed vs expected); reject a
+    # half-pair structurally so it can never reach the check layer.
+    if ("target_digest" in value) != ("expected_digest" in value):
+        issues.append(
+            Issue(
+                "$.state",
+                "target_digest and expected_digest must appear together or not at all",
+            )
+        )
