@@ -3,8 +3,10 @@
 Single source of truth for the proof-surface packet, the work-record receipt
 (the structural inverse of an authorization-suppression prefire), the
 authorization receipt (the inward complement: a real, explicit, least-privilege,
-expiring, revocable grant from a human principal to an agent), and a
-consumer-side validator that mirrors EMET's witness-receipt shape. Stdlib-only.
+expiring, revocable grant from a human principal to an agent), a consumer-side
+validator that mirrors EMET's witness-receipt shape, and the pre-execution gate
+(a default-deny, fail-closed, advisory mediation layer that checks a planned
+action before it runs). Stdlib-only.
 """
 
 from ._validate import Issue
@@ -19,6 +21,12 @@ from .packet import (
     PACKET_VERSION,
     validate_packet,
     validate_packet_file,
+)
+from .pre_execution_gate import (
+    GATE_VERSION,
+    GateDecision,
+    evaluate_gate,
+    validate_gate_request,
 )
 from .witness_receipt import (
     WITNESS_VERDICTS,
@@ -38,6 +46,10 @@ __all__ = [
     "check_action",
     "validate_authorization_receipt",
     "validate_authorization_receipt_file",
+    "GATE_VERSION",
+    "GateDecision",
+    "evaluate_gate",
+    "validate_gate_request",
     "PACKET_VERSION",
     "validate_packet",
     "validate_packet_file",
