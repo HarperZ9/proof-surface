@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "proof-surface"
 version = "0.1.0"
-description = "Shared accountability/provenance contract family: proof-surface packet, work-record receipt, and witness-receipt validators"
+description = "Shared accountability/provenance contract family: packet, work-record + authorization receipts, witness receipt, pre-execution gate, evaluation contract, claim ledger, and delegation chain validators"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -22,7 +22,7 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-test = ["pytest>=8"]
+test = ["pytest>=8", "jsonschema>=4.18"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
