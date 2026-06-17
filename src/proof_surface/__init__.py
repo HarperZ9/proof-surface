@@ -6,7 +6,10 @@ authorization receipt (the inward complement: a real, explicit, least-privilege,
 expiring, revocable grant from a human principal to an agent), a consumer-side
 validator that mirrors EMET's witness-receipt shape, and the pre-execution gate
 (a default-deny, fail-closed, advisory mediation layer that checks a planned
-action before it runs). Stdlib-only.
+action before it runs), the evaluation contract (an eval tied to a
+deploy/block/needs-human gate, uncertainty-aware), and the claim ledger
+(traceable multi-agent memory with source-provided confidence, conflict, and
+dependence tracing). Stdlib-only.
 """
 
 from ._validate import Issue
@@ -33,6 +36,19 @@ from .witness_receipt import (
     validate_witness_receipt,
     validate_witness_receipt_file,
 )
+from .evaluation_contract import (
+    EVAL_VERSION,
+    EvalDecision,
+    evaluate,
+    validate_evaluation_contract,
+)
+from .claim_ledger import (
+    LEDGER_VERSION,
+    confidence_gate,
+    find_conflicts,
+    trace_dependents,
+    validate_claim_ledger,
+)
 from .work_record import (
     WORK_RECORD_VERSION,
     validate_work_record,
@@ -56,6 +72,15 @@ __all__ = [
     "WITNESS_VERDICTS",
     "validate_witness_receipt",
     "validate_witness_receipt_file",
+    "EVAL_VERSION",
+    "EvalDecision",
+    "evaluate",
+    "validate_evaluation_contract",
+    "LEDGER_VERSION",
+    "confidence_gate",
+    "find_conflicts",
+    "trace_dependents",
+    "validate_claim_ledger",
     "WORK_RECORD_VERSION",
     "validate_work_record",
     "validate_work_record_file",
