@@ -7,9 +7,12 @@ expiring, revocable grant from a human principal to an agent), a consumer-side
 validator that mirrors EMET's witness-receipt shape, and the pre-execution gate
 (a default-deny, fail-closed, advisory mediation layer that checks a planned
 action before it runs), the evaluation contract (an eval tied to a
-deploy/block/needs-human gate, uncertainty-aware), and the claim ledger
+deploy/block/needs-human gate, uncertainty-aware), the claim ledger
 (traceable multi-agent memory with source-provided confidence, conflict, and
-dependence tracing). Stdlib-only.
+dependence tracing), and the delegation chain (identity & scoped authority:
+scoped, monotonically-attenuating delegation rooted in a real human principal,
+hash-chain integrity with a whole-chain commitment — the structural inverse of
+identity fabrication and privilege escalation). Stdlib-only.
 """
 
 from ._validate import Issue
@@ -49,6 +52,15 @@ from .claim_ledger import (
     trace_dependents,
     validate_claim_ledger,
 )
+from .delegation_chain import (
+    DELEGATION_VERSION,
+    DelegationVerdict,
+    compute_binding,
+    compute_chain_binding,
+    validate_delegation_chain,
+    validate_delegation_chain_file,
+    verify_delegation,
+)
 from .work_record import (
     WORK_RECORD_VERSION,
     validate_work_record,
@@ -81,6 +93,13 @@ __all__ = [
     "find_conflicts",
     "trace_dependents",
     "validate_claim_ledger",
+    "DELEGATION_VERSION",
+    "DelegationVerdict",
+    "compute_binding",
+    "compute_chain_binding",
+    "validate_delegation_chain",
+    "validate_delegation_chain_file",
+    "verify_delegation",
     "WORK_RECORD_VERSION",
     "validate_work_record",
     "validate_work_record_file",
