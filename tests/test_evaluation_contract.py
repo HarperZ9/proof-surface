@@ -480,3 +480,42 @@ def test_conformance_fixtures_match_manifest():
             assert issues == [], f"{fixture['path']} should be valid: {issues}"
         else:
             assert issues, f"{fixture['path']} should be invalid but got no issues"
+
+
+# ---------------------------------------------------------------------------
+# Hardening regressions (bulletproofing audit) — evaluate() validates first
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_blocks_invalid_contract_not_deploy():
+    # An empty contract must NOT yield deploy via the zero-criteria fall-through.
+    decision = evaluate({}, [])
+    assert decision.decision == "block"
+
+
+def test_evaluate_blocks_empty_criteria():
+    contract = _minimal_contract(criteria=[])
+    decision = evaluate(contract, [])
+    assert decision.decision == "block"
+
+
+def test_evaluate_blocks_unknown_direction():
+    # A tampered direction must be rejected (validate-first), never silently
+    # treated as "<=".
+    contract = _minimal_contract(
+        criteria=[{"name": "x", "metric": "m", "threshold": 1.0,
+                   "direction": "SKIP", "required": True}]
+    )
+    decision = evaluate(contract, [_result("x", 5.0)])
+    assert decision.decision == "block"
+
+
+def test_compare_unknown_direction_fails_closed():
+    from proof_surface.evaluation_contract import _compare
+    assert _compare(5.0, 0.0, 1.0, "SKIP") == "fail"
+
+
+def test_evaluate_valid_contract_still_deploys():
+    contract = _minimal_contract()
+    decision = evaluate(contract, [_result("accuracy", 95.0)])
+    assert decision.decision == "deploy"
