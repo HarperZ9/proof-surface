@@ -91,6 +91,12 @@ for issue in issues:
     print(issue.path, issue.message)
 ```
 
+Every validator returns `list[Issue]` (empty == valid); the decision helpers
+(`evaluate`, `evaluate_gate`, `verify_delegation`, `check_action`) return their
+own closed-lattice results. See **[USAGE.md](USAGE.md)** for an install line,
+the full call surface, and worked examples with expected output, and
+`examples/` for a runnable end-to-end demo.
+
 Schemas live in `schemas/`; conformance vectors (valid + invalid) live under
 `conformance/<contract>/v0.1/` with a `manifest.json` per contract.
 
