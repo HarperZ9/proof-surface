@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "proof-surface"
 version = "0.1.0"
-description = "Shared accountability/provenance contract family: packet, work-record + authorization receipts, witness receipt, pre-execution gate, evaluation contract, claim ledger, and delegation chain validators"
+description = "The stdlib-only accountability contract: evidence packets, work-record receipts, and witness validators that reject authority-shaped content."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
