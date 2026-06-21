@@ -1,9 +1,10 @@
 """Pre-execution gate: a default-deny, fail-closed, ADVISORY mediation layer.
 
-Given a planned action, its authorization receipt, an available budget, and
-optional observed state, this gate returns a GateDecision that a runtime or
-operator MUST enforce.  The gate REPORTS a decision; it NEVER grants authority
-and is NEVER injected into a model as trusted state.
+Given a planned action, its authorization receipt, an available budget, optional
+observed state, and optional human-gap evidence, this gate returns a
+GateDecision that a runtime or operator MUST enforce.  The gate REPORTS a
+decision; it NEVER grants authority and is NEVER injected into a model as
+trusted state.
 
 Design principles
 -----------------
@@ -19,6 +20,7 @@ Decision aggregation
 --------------------
   allow        — authorization=pass AND budget in {pass,not-applicable}
                  AND state in {pass,not-applicable}
+                 AND human_gap in {pass,not-applicable}
   deny         — any check is "fail"
   needs-human  — no "fail", but at least one check is "unknown"
 """
@@ -35,6 +37,7 @@ from .authorization_receipt import (
     check_action,
     validate_authorization_receipt,
 )
+from .human_gap import check_human_gap, validate_human_gap
 from .witness_receipt import WITNESS_VERDICTS
 
 GATE_VERSION = "0.1"
@@ -70,7 +73,7 @@ WITNESS_CONFIRMING = {WITNESS_MATCH, WITNESS_COHERENT, WITNESS_CORROBORATED}
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 
 # Gate-request top-level field allowlist.
-ROOT_FIELDS = {"planned_action", "authorization", "budget", "state"}
+ROOT_FIELDS = {"planned_action", "authorization", "budget", "state", "human_gap"}
 
 # Nested field allowlists.
 PLANNED_ACTION_FIELDS = {"action_kind", "target", "estimated_cost"}
@@ -91,7 +94,7 @@ class GateDecision:
     decision  — one of "allow", "deny", "needs-human".
     reasons   — ordered list of human-readable strings explaining the decision.
     checks    — per-dimension result; each value in {pass,fail,unknown,not-applicable}.
-                Keys: "authorization", "budget", "state".
+                Keys: "authorization", "budget", "state", "human_gap".
     """
 
     decision: str
@@ -122,6 +125,7 @@ def validate_gate_request(data: Any) -> list[Issue]:
     _validate_authorization_field(data.get("authorization"), issues)
     _validate_budget(data.get("budget"), issues)
     _validate_state(data.get("state"), issues)
+    validate_human_gap(data.get("human_gap"), issues)
 
     return issues
 
@@ -148,6 +152,7 @@ def evaluate_gate(request: dict[str, Any]) -> GateDecision:
                 "authorization": FAIL,
                 "budget": NOT_APPLICABLE,
                 "state": NOT_APPLICABLE,
+                "human_gap": NOT_APPLICABLE,
             },
         )
 
@@ -159,6 +164,7 @@ def evaluate_gate(request: dict[str, Any]) -> GateDecision:
     authorization_obj: dict[str, Any] = request.get("authorization") or {}
     budget_obj: dict[str, Any] = request.get("budget") or {}
     state_obj: dict[str, Any] | None = request.get("state")  # optional
+    human_gap_obj: dict[str, Any] | None = request.get("human_gap")  # optional
 
     reasons: list[str] = []
 
@@ -176,10 +182,15 @@ def evaluate_gate(request: dict[str, Any]) -> GateDecision:
     state_check, state_reasons = _check_state(state_obj)
     reasons.extend(state_reasons)
 
+    # --- Check: human gap ------------------------------------------------------
+    human_gap_check, human_gap_reasons = check_human_gap(human_gap_obj)
+    reasons.extend(human_gap_reasons)
+
     checks = {
         "authorization": auth_check,
         "budget": budget_check,
         "state": state_check,
+        "human_gap": human_gap_check,
     }
 
     # --- Final aggregation (default-deny, fail-closed) -------------------------
