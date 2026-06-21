@@ -47,6 +47,7 @@ Everything is re-exported from the top-level `proof_surface` package.
 | evaluation contract | `validate_evaluation_contract` | `evaluate(contract, results) -> EvalDecision` |
 | claim ledger | `validate_claim_ledger` | `confidence_gate`, `find_conflicts`, `trace_dependents` |
 | delegation chain | `validate_delegation_chain`, `validate_delegation_chain_file` | `verify_delegation(...) -> DelegationVerdict`; producer helpers `compute_binding`, `compute_chain_binding` |
+| organ receipt bundle | `validate_organ_receipt_bundle`, `validate_organ_receipt_bundle_file` | compact interchange over sibling organ receipts |
 
 `Issue` is a frozen dataclass with two fields: `Issue.path` (a JSONPath-ish
 string like `"$.scope.allowed_actions"`) and `Issue.message`. **An empty list
@@ -155,6 +156,9 @@ Both `evaluate_gate` and `evaluate` return a frozen decision object. The gate is
 **default-deny / fail-closed**: `allow` only when every applicable check passes;
 any check that cannot be positively confirmed becomes `unknown` and the decision
 escalates to `needs-human`.
+If a request declares a required `human_gap`, the gate likewise escalates until
+external operator attestation, an evidence label, and an evidence digest are
+present.
 
 ```python
 from datetime import datetime, timezone
@@ -193,7 +197,7 @@ print(evaluate_gate(request_no_budget).decision)
 Expected output:
 
 ```
-allow {'authorization': 'pass', 'budget': 'pass', 'state': 'not-applicable'}
+allow {'authorization': 'pass', 'budget': 'pass', 'state': 'not-applicable', 'human_gap': 'not-applicable'}
 needs-human
 ```
 

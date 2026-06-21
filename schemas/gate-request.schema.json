@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://harperz9.github.io/proof-surface/gate-request.schema.json",
   "title": "Pre-Execution Gate Request v0.1",
-  "description": "Input to the pre-execution gate: a default-deny, fail-closed, ADVISORY mediation layer. The gate checks a planned action against an authorization receipt, a resource budget, and optional observed state, then returns allow/deny/needs-human. The gate REPORTS a decision for a runtime/operator to enforce; it NEVER grants authority and is NEVER injected into a model as trusted state. additionalProperties is false at every level. The forbidden-field-name guard (same set as authorization-receipt and work-record) is applied recursively by the reference validator.",
+  "description": "Input to the pre-execution gate: a default-deny, fail-closed, ADVISORY mediation layer. The gate checks a planned action against an authorization receipt, a resource budget, optional observed state, and optional human-gap attestation evidence, then returns allow/deny/needs-human. The gate REPORTS a decision for a runtime/operator to enforce; it NEVER grants authority and is NEVER injected into a model as trusted state. additionalProperties is false at every level. The forbidden-field-name guard (same set as authorization-receipt and work-record) is applied recursively by the reference validator.",
   "type": "object",
   "additionalProperties": false,
   "required": ["planned_action", "authorization", "budget"],
@@ -88,6 +88,37 @@
           "type": "string",
           "pattern": "^[0-9a-f]{64}$",
           "description": "Expected SHA-256 digest of the target (64 lowercase hex chars). If both target_digest and expected_digest are present and differ, the gate denies."
+        }
+      }
+    },
+    "human_gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requires_human_act", "act_kind"],
+      "description": "Optional marker for work where a human-owned act remains outside the tool/model boundary. If requires_human_act is true, the gate needs external operator attestation, an evidence label, and an evidence digest before this dimension can pass.",
+      "properties": {
+        "requires_human_act": {
+          "type": "boolean",
+          "description": "True when the request depends on a human-owned act that the tool cannot synthesize."
+        },
+        "act_kind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Machine-readable kind label for the human act, such as authorship_attestation, viva_defense, or external_review."
+        },
+        "evidence_label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable pointer to the external attestation evidence."
+        },
+        "evidence_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 digest of the external attestation artifact (64 lowercase hex chars)."
+        },
+        "operator_attested": {
+          "type": "boolean",
+          "description": "True only when the operator has attested that the external human act and evidence exist."
         }
       }
     }

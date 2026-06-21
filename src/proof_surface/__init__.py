@@ -66,6 +66,11 @@ from .work_record import (
     validate_work_record,
     validate_work_record_file,
 )
+from .organ_receipt_bundle import (
+    ORGAN_BUNDLE_VERSION,
+    validate_organ_receipt_bundle,
+    validate_organ_receipt_bundle_file,
+)
 
 __all__ = [
     "Issue",
@@ -103,5 +108,8 @@ __all__ = [
     "WORK_RECORD_VERSION",
     "validate_work_record",
     "validate_work_record_file",
+    "ORGAN_BUNDLE_VERSION",
+    "validate_organ_receipt_bundle",
+    "validate_organ_receipt_bundle_file",
 ]
 __version__ = "0.1.0"

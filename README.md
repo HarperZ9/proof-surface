@@ -22,6 +22,17 @@
 | **claim ledger** (`v0.1`) | `validate_claim_ledger`, `confidence_gate`, `find_conflicts`, `trace_dependents` | Traceable multi-agent memory: each claim carries a **source-provided** confidence plus explicit `depends_on` / `conflicts_with` links (referential integrity enforced). Surfaces low-confidence claims, declared conflicts, and the transitive set contaminated by a given claim (cycle-safe). Reports provenance and uncertainty; it does **not** adjudicate truth. |
 | **delegation chain** (`v0.1`) | `validate_delegation_chain`, `verify_delegation`, `compute_binding`, `compute_chain_binding` | Identity & scoped authority: a chain of delegation hops **rooted in a real human** (the root hop's `from` must be a human — authority cannot originate with an agent), where each hop's scope **monotonically attenuates** its parent's (a delegate can hold only a subset — any widening is the shape of privilege escalation and is `DENIED`). Each hop is hash-chained (SHA-256) and the whole chain is committed into one `chain_binding` (id + length + terminal binding) so truncation and extension are caught. `verify_delegation` returns a closed `VALID` / `DENIED` / `UNVERIFIABLE` verdict; `effective_scope`/`effective_expiry` are populated only on `VALID`. Action/target matching is exact (case-sensitive). The keyless hash-chain is **self-consistent integrity, not tamper-evidence against an adversary who recomputes it**; real anti-forgery needs an external anchor — pin `chain_binding` out-of-band (`pinned_chain_binding`) or verify an asymmetric signature (`require_signatures` + verifier). Demanding signature assurance with no verifier returns `UNVERIFIABLE`, never a fabricated `VALID`; a supplied verifier that returns False or raises is `DENIED`. |
 
+Human-gap evidence is part of the pre-execution gate request shape. When
+`human_gap.requires_human_act` is true, the gate reports `needs-human` until the
+request carries external operator attestation plus an evidence label and digest;
+the gate records that status but does not perform or synthesize the human act.
+
+`organ-receipt-bundle` (`v0.1`) is the interchange spine for sibling organs. It
+ties RAW health receipts, EMET witness receipts, Sensorium provenance receipts,
+coherence observations, and proof-surface gate decisions together by digest,
+reference, advisory status, and edge relation; it does not embed heavy payloads
+or grant authority.
+
 ## Design stance
 
 - **Accountability, not authority.** Every validator rejects authority-shaped
