@@ -1,5 +1,37 @@
 # Proof Surface
 
+<p align="center">
+  <img src="docs/brand/proof-surface-hero.png" alt="Proof Surface, validate evidence packets and receipt contracts">
+</p>
+
+> Validate evidence packets, receipt contracts, gates, ledgers, and verdicts.
+
+## Try it
+
+```bash
+python -m pip install -e .
+python -m pytest -q
+```
+
+## Why it matters
+
+AI workflow records are only useful if another tool can validate their shape. Proof Surface defines small stdlib-only contracts for evidence packets, work receipts, gates, ledgers, delegation chains, and witness receipts so review tools can reject malformed or authority-shaped records.
+
+## What to test first
+
+- Run the test suite and inspect which contract each validator covers.
+- Create a packet with an unexpected field and confirm the validator rejects it.
+- Remove required evidence from a receipt and confirm the result becomes invalid or unverifiable.
+
+## Current status
+
+- **Runtime:** Python 3.11+; stdlib-only core.
+- **Surface:** Python API and contract-validator library for evidence packets, receipts, gates, ledgers, delegation chains, and witness receipts.
+- **Verification:** the pytest suite is the conformance surface for the current contracts.
+- **Boundary:** Proof Surface validates records. It does not grant authority, execute actions, or store private payloads.
+
+## Technical framing
+
 > The stdlib-only accountability contract: evidence packets, work-record receipts, and witness validators that reject authority-shaped content.
 
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
