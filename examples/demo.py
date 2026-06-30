@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """End-to-end demo of the proof-surface contract family.
 
-Best-effort demo — not runtime-verified by author.
+Best-effort demo -- not runtime-verified by author.
 
 Exercises every active contract through its real public API, using only
 functions exported from the top-level ``proof_surface`` package:
 
-  * authorization receipt   — validate + check_action (allow / deny)
-  * pre-execution gate       — evaluate_gate (allow / needs-human)
-  * evaluation contract      — evaluate (deploy / needs-human on uncertainty)
-  * claim ledger             — validate + confidence_gate / find_conflicts /
+  * authorization receipt   -- validate + check_action (allow / deny)
+  * pre-execution gate       -- evaluate_gate (allow / needs-human)
+  * evaluation contract      -- evaluate (deploy / needs-human on uncertainty)
+  * claim ledger             -- validate + confidence_gate / find_conflicts /
                                trace_dependents
-  * delegation chain         — compute_binding / compute_chain_binding (producer)
+  * delegation chain         -- compute_binding / compute_chain_binding (producer)
                                + validate + verify_delegation (VALID / DENIED /
                                UNVERIFIABLE)
 
@@ -240,7 +240,7 @@ def main() -> None:
     demo_claim_ledger()
     demo_delegation_chain()
     print("\nDemo complete. Every result above is a verifier input or a")
-    print("reviewer-facing decision — none of it grants authority.")
+    print("reviewer-facing decision -- none of it grants authority.")
 
 
 if __name__ == "__main__":

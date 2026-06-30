@@ -2,7 +2,7 @@
 
 The ledger records claims made by agents (or principals), each with a
 source-provided confidence score and explicit dependency/conflict links.
-It is an accountability layer — it surfaces provenance, confidence, and
+It is an accountability layer -- it surfaces provenance, confidence, and
 conflict for human review.  It does NOT adjudicate truth.
 
 Design principles
@@ -72,7 +72,7 @@ FORBIDDEN_FIELDS = {
 
 
 # ---------------------------------------------------------------------------
-# Public API — validation
+# Public API -- validation
 # ---------------------------------------------------------------------------
 
 
@@ -120,7 +120,7 @@ def validate_claim_ledger(data: Any) -> list[Issue]:
 
 
 # ---------------------------------------------------------------------------
-# Public API — analysis functions
+# Public API -- analysis functions
 # ---------------------------------------------------------------------------
 
 

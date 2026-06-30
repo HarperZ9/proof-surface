@@ -8,17 +8,17 @@ checking authorization, this receipt:
   * records a REAL grant by a REAL human/account principal (never a fabricated
     appointment or self-granted role),
   * has a hard-required expiry (authority MUST expire),
-  * carries an explicit ALLOWLIST scope (default-deny — an empty allowed_actions
+  * carries an explicit ALLOWLIST scope (default-deny -- an empty allowed_actions
     list authorizes NOTHING),
-  * is verifier INPUT only — a checker validates an action against the receipt;
+  * is verifier INPUT only -- a checker validates an action against the receipt;
     it is NEVER read back into a model's context as pre-authorized state,
   * applies the identical forbidden-field-name guard as the work-record receipt
     (recursive, fail-closed) so the prefire suppression keys can never be
     smuggled inside a receipt object.
 
 This completes the bilateral provenance pair:
-  work-record receipt  — OUTWARD (what the agent did)
-  authorization receipt — INWARD (what a human principal explicitly allowed)
+  work-record receipt  -- OUTWARD (what the agent did)
+  authorization receipt -- INWARD (what a human principal explicitly allowed)
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ AGENT_FIELDS = {"id"}
 SCOPE_FIELDS = {"allowed_actions", "allowed_targets", "max_actions"}
 
 # Field NAMES lifted verbatim from the excluded warden-prefire capsule/meta.
-# Identical set to work_record.FORBIDDEN_FIELDS — shared canon, not coincidence.
+# Identical set to work_record.FORBIDDEN_FIELDS -- shared canon, not coincidence.
 # Applied recursively; fail-closed.
 FORBIDDEN_FIELDS = {
     "federal_appointment",
@@ -75,7 +75,7 @@ FORBIDDEN_FIELDS = {
     "run_state",
 }
 
-# ISO-8601 datetime — require timezone offset so expiry is unambiguous.
+# ISO-8601 datetime -- require timezone offset so expiry is unambiguous.
 _ISO8601_RE = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
 )
@@ -143,7 +143,7 @@ def check_action(
     # Structural validity is a prerequisite.
     issues = validate_authorization_receipt(receipt)
     if issues:
-        return Issue("$", f"receipt invalid: {issues[0].path} — {issues[0].message}")
+        return Issue("$", f"receipt invalid: {issues[0].path} -- {issues[0].message}")
 
     if receipt.get("revoked") is True:
         return Issue("$.revoked", "action denied: receipt is revoked")
@@ -226,7 +226,7 @@ def _validate_scope(value: Any, issues: list[Issue]) -> None:
     # allowed_actions: required array of strings (may be empty = nothing allowed).
     actions = value.get("allowed_actions")
     if not isinstance(actions, list):
-        issues.append(Issue("$.scope.allowed_actions", "expected array (may be empty — empty means nothing allowed)"))
+        issues.append(Issue("$.scope.allowed_actions", "expected array (may be empty -- empty means nothing allowed)"))
     else:
         for i, item in enumerate(actions):
             if not isinstance(item, str) or not item.strip():

@@ -1,4 +1,4 @@
-"""proof-surface — the shared accountability/provenance contract family.
+"""proof-surface -- the shared accountability/provenance contract family.
 
 Single source of truth for the proof-surface packet, the work-record receipt
 (the structural inverse of an authorization-suppression prefire), the
@@ -11,7 +11,7 @@ deploy/block/needs-human gate, uncertainty-aware), the claim ledger
 (traceable multi-agent memory with source-provided confidence, conflict, and
 dependence tracing), and the delegation chain (identity & scoped authority:
 scoped, monotonically-attenuating delegation rooted in a real human principal,
-hash-chain integrity with a whole-chain commitment — the structural inverse of
+hash-chain integrity with a whole-chain commitment -- the structural inverse of
 identity fabrication and privilege escalation). Stdlib-only.
 """
 

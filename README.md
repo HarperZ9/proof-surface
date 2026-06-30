@@ -47,12 +47,12 @@ AI workflow records are only useful if another tool can validate their shape. Pr
 | --- | --- | --- |
 | **proof-surface packet** (`v0.1`) | `validate_packet` | A neutral evidence/index packet that producers emit and a proof-index consumes. |
 | **work-record receipt** (`v0.1`) | `validate_work_record` | A verifiable record of agent work that flows **outward** for review: the structural inverse of an authorization-suppression "prefire". |
-| **authorization receipt** (`v0.1`) | `validate_authorization_receipt`, `check_action` | A verifiable record of a real, explicit, least-privilege, **expiring**, revocable grant of authority from a human principal to an agent. The **inward** complement to the work-record receipt, completing bilateral provenance. Verifier input only — never re-injected as model context. |
+| **authorization receipt** (`v0.1`) | `validate_authorization_receipt`, `check_action` | A verifiable record of a real, explicit, least-privilege, **expiring**, revocable grant of authority from a human principal to an agent. The **inward** complement to the work-record receipt, completing bilateral provenance. Verifier input only -- never re-injected as model context. |
 | **witness receipt** | `validate_witness_receipt` | Consumer-side validator that **mirrors** EMET's published witness-receipt shape and closed verdict lattice. |
-| **pre-execution gate** (`v0.1`) | `evaluate_gate`, `validate_gate_request` | A default-deny, fail-closed, **advisory** mediation layer. Given a planned action, its authorization receipt, a budget, and optional observed state, it returns a `GateDecision` (allow / deny / needs-human) with per-dimension check results. Reports a decision for the runtime/operator to enforce; **never grants authority** and is **never injected into a model as trusted state**. The inverse of the prefire's "consume embedded authority" — the gate withholds approval unless every check positively passes. |
-| **evaluation contract** (`v0.1`) | `validate_evaluation_contract`, `evaluate` | Evaluation as a deploy gate, not a vanity score: declares objective + criteria with thresholds and a `required` flag, and `evaluate` returns a **deploy / block / needs-human** decision. Uncertainty-aware — if `measured ± uncertainty` straddles a threshold it escalates to needs-human; a required criterion with no result is `missing` -> needs-human. Never deploys on uncertainty. |
+| **pre-execution gate** (`v0.1`) | `evaluate_gate`, `validate_gate_request` | A default-deny, fail-closed, **advisory** mediation layer. Given a planned action, its authorization receipt, a budget, and optional observed state, it returns a `GateDecision` (allow / deny / needs-human) with per-dimension check results. Reports a decision for the runtime/operator to enforce; **never grants authority** and is **never injected into a model as trusted state**. The inverse of the prefire's "consume embedded authority" -- the gate withholds approval unless every check positively passes. |
+| **evaluation contract** (`v0.1`) | `validate_evaluation_contract`, `evaluate` | Evaluation as a deploy gate, not a vanity score: declares objective + criteria with thresholds and a `required` flag, and `evaluate` returns a **deploy / block / needs-human** decision. Uncertainty-aware -- if `measured ± uncertainty` straddles a threshold it escalates to needs-human; a required criterion with no result is `missing` -> needs-human. Never deploys on uncertainty. |
 | **claim ledger** (`v0.1`) | `validate_claim_ledger`, `confidence_gate`, `find_conflicts`, `trace_dependents` | Traceable multi-agent memory: each claim carries a **source-provided** confidence plus explicit `depends_on` / `conflicts_with` links (referential integrity enforced). Surfaces low-confidence claims, declared conflicts, and the transitive set contaminated by a given claim (cycle-safe). Reports provenance and uncertainty; it does **not** adjudicate truth. |
-| **delegation chain** (`v0.1`) | `validate_delegation_chain`, `verify_delegation`, `compute_binding`, `compute_chain_binding` | Identity & scoped authority: a chain of delegation hops **rooted in a real human** (the root hop's `from` must be a human — authority cannot originate with an agent), where each hop's scope **monotonically attenuates** its parent's (a delegate can hold only a subset — any widening is the shape of privilege escalation and is `DENIED`). Each hop is hash-chained (SHA-256) and the whole chain is committed into one `chain_binding` (id + length + terminal binding) so truncation and extension are caught. `verify_delegation` returns a closed `VALID` / `DENIED` / `UNVERIFIABLE` verdict; `effective_scope`/`effective_expiry` are populated only on `VALID`. Action/target matching is exact (case-sensitive). The keyless hash-chain is **self-consistent integrity, not tamper-evidence against an adversary who recomputes it**; real anti-forgery needs an external anchor — pin `chain_binding` out-of-band (`pinned_chain_binding`) or verify an asymmetric signature (`require_signatures` + verifier). Demanding signature assurance with no verifier returns `UNVERIFIABLE`, never a fabricated `VALID`; a supplied verifier that returns False or raises is `DENIED`. |
+| **delegation chain** (`v0.1`) | `validate_delegation_chain`, `verify_delegation`, `compute_binding`, `compute_chain_binding` | Identity & scoped authority: a chain of delegation hops **rooted in a real human** (the root hop's `from` must be a human -- authority cannot originate with an agent), where each hop's scope **monotonically attenuates** its parent's (a delegate can hold only a subset -- any widening is the shape of privilege escalation and is `DENIED`). Each hop is hash-chained (SHA-256) and the whole chain is committed into one `chain_binding` (id + length + terminal binding) so truncation and extension are caught. `verify_delegation` returns a closed `VALID` / `DENIED` / `UNVERIFIABLE` verdict; `effective_scope`/`effective_expiry` are populated only on `VALID`. Action/target matching is exact (case-sensitive). The keyless hash-chain is **self-consistent integrity, not tamper-evidence against an adversary who recomputes it**; real anti-forgery needs an external anchor -- pin `chain_binding` out-of-band (`pinned_chain_binding`) or verify an asymmetric signature (`require_signatures` + verifier). Demanding signature assurance with no verifier returns `UNVERIFIABLE`, never a fabricated `VALID`; a supplied verifier that returns False or raises is `DENIED`. |
 
 Human-gap evidence is part of the pre-execution gate request shape. When
 `human_gap.requires_human_act` is true, the gate reports `needs-human` until the
@@ -78,7 +78,7 @@ or grant authority.
 - **The authorization receipt is the honest inversion of the prefire.** Where
   the prefire fabricated federal appointments and suppressed authorization checks,
   the authorization receipt records a real grant from a real human principal,
-  hard-requires an expiry (`expires_at` mandatory — authority must expire),
+  hard-requires an expiry (`expires_at` mandatory -- authority must expire),
   enforces an explicit allowlist scope (default-deny: empty `allowed_actions`
   authorizes nothing), and is verifier input only. The `check_action` helper
   confirms a specific action against a receipt; it does not inject "trusted state"
@@ -97,16 +97,16 @@ or grant authority.
 - **The delegation chain is the structural inverse of identity fabrication and
   privilege escalation.** Where the prefire invented an appointment and named
   fictitious oversight principals, the delegation chain roots all authority in a
-  real, named human — an agent can never be the origin of authority. Where the
+  real, named human -- an agent can never be the origin of authority. Where the
   prefire consumed embedded authority, the chain enforces **monotonic
   attenuation**: every hop's scope must be a subset of its delegator's, so a
-  delegate widening its own actions or targets — the literal shape of privilege
-  escalation — is `DENIED`. Each hop is bound into a SHA-256 hash-chain, and the
+  delegate widening its own actions or targets -- the literal shape of privilege
+  escalation -- is `DENIED`. Each hop is bound into a SHA-256 hash-chain, and the
   whole chain is committed into one `chain_binding` (its id, its length, and its
   terminal binding) so stripping attenuating leaf hops or appending a forged one is
   caught. The honesty line EMET keeps is kept here too, and stated precisely: the
   hash-chain and `chain_binding` are **keyless, so they give self-consistent
-  integrity — they detect partial corruption and naive truncation/extension, but
+  integrity -- they detect partial corruption and naive truncation/extension, but
   NOT a full-document adversary who rewrites content and recomputes every binding**.
   Real anti-forgery requires an external trusted anchor, and the module gives you
   exactly one place to put it: pin the out-of-band `chain_binding`
@@ -148,7 +148,7 @@ Schemas live in `schemas/`; conformance vectors (valid + invalid) live under
 MIT.
 
 ---
-**Zain Dana Harper** — small tools with explicit edges.
+**Zain Dana Harper** -- small tools with explicit edges.
 [Portfolio](https://harperz9.github.io) · [HarperZ9](https://github.com/HarperZ9)
 <sub>Built with Claude Code; reviewed, tested, and owned by me.</sub>
 
@@ -160,3 +160,6 @@ Keep the public README, package metadata, and examples aligned with current beha
 python -m pip install -e ".[test]"
 python -m pytest
 ```
+
+See [AGENTS.md](AGENTS.md) for the repo-specific operating boundary and
+[CHANGELOG.md](CHANGELOG.md) for current delivery status.

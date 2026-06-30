@@ -4,12 +4,12 @@ A practical guide to the public API. `proof-surface` is a **stdlib-only,
 zero-dependency** library: every contract is a plain validator (returns a list
 of `Issue`, empty meaning valid) plus, for the active contracts, a decision
 helper that returns a closed-lattice verdict. Nothing here grants authority or
-is meant to be fed back into a model as trusted state — these are **verifier
+is meant to be fed back into a model as trusted state -- these are **verifier
 inputs and reviewer-facing outputs**.
 
 > The output blocks below were produced by running the calls against
 > `proof_surface` 0.1.0 on CPython 3.12. Treat exact reason strings as
-> illustrative — assert on `decision` / `verdict` / `path`, not on prose.
+> illustrative -- assert on `decision` / `verdict` / `path`, not on prose.
 
 ## Install
 
@@ -39,10 +39,10 @@ Everything is re-exported from the top-level `proof_surface` package.
 
 | Contract | Validator (`-> list[Issue]`) | Decision / helper |
 | --- | --- | --- |
-| proof-surface packet | `validate_packet`, `validate_packet_file` | — |
-| work-record receipt | `validate_work_record`, `validate_work_record_file` | — |
+| proof-surface packet | `validate_packet`, `validate_packet_file` | -- |
+| work-record receipt | `validate_work_record`, `validate_work_record_file` | -- |
 | authorization receipt | `validate_authorization_receipt`, `validate_authorization_receipt_file` | `check_action(receipt, action, target, *, now=None) -> Issue \| None` |
-| witness receipt | `validate_witness_receipt`, `validate_witness_receipt_file` | — |
+| witness receipt | `validate_witness_receipt`, `validate_witness_receipt_file` | -- |
 | pre-execution gate | `validate_gate_request` | `evaluate_gate(request) -> GateDecision` |
 | evaluation contract | `validate_evaluation_contract` | `evaluate(contract, results) -> EvalDecision` |
 | claim ledger | `validate_claim_ledger` | `confidence_gate`, `find_conflicts`, `trace_dependents` |
@@ -59,7 +59,7 @@ from proof_surface import Issue, validate_packet
 
 ---
 
-## Example 1 — validate a document
+## Example 1 -- validate a document
 
 Every validator takes an already-parsed `dict` and returns `list[Issue]`. The
 `*_file` variants take a `pathlib.Path`, load the JSON for you, and return the
@@ -102,7 +102,7 @@ For example, adding an unknown top-level key `"foo": 1`:
 
 ---
 
-## Example 2 — authorization receipt + `check_action`
+## Example 2 -- authorization receipt + `check_action`
 
 `check_action` returns `None` when the action is **allowed**, or an `Issue`
 explaining the **denial**. It is default-deny: a structurally invalid receipt, a
@@ -150,7 +150,7 @@ not in the allowlist.
 
 ---
 
-## Example 3 — pre-execution gate and evaluation contract
+## Example 3 -- pre-execution gate and evaluation contract
 
 Both `evaluate_gate` and `evaluate` return a frozen decision object. The gate is
 **default-deny / fail-closed**: `allow` only when every applicable check passes;
@@ -244,7 +244,7 @@ needs-human {'accuracy': 'uncertain', 'p99_latency_ms': 'pass'}
 
 ---
 
-## Example 4 — delegation chain (build, validate, verify)
+## Example 4 -- delegation chain (build, validate, verify)
 
 A delegation chain roots authority in a **real human** and attenuates scope down
 every hop. Bindings are SHA-256 hash-chains; build them with the producer
@@ -292,7 +292,7 @@ bad = verify_delegation(chain, action="delete", target="repo:proof-surface", now
 print(bad.verdict)
 
 # Demanding asymmetric-signature assurance with no verifier is honestly
-# UNVERIFIABLE — never a fabricated VALID.
+# UNVERIFIABLE -- never a fabricated VALID.
 print(verify_delegation(chain, require_signatures=True, now=now).verdict)
 ```
 

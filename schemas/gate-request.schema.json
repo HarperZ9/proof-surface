@@ -123,5 +123,5 @@
       }
     }
   },
-  "$comment": "Forbidden field names (rejected by name at every object level by the reference validator — identical set to authorization-receipt and work-record-receipt): federal_appointment, oversight_principals, operator_role, judgment_owner, proof_policy, policy_boundary, authorization_context_mode, model_authorization_behavior, guardrail_posture, consume_verified_native_state, lossy_neutral_embedded_state, sovereignty_capsule, self_applicable, recursion_depth, prefire, run_state."
+  "$comment": "Forbidden field names (rejected by name at every object level by the reference validator -- identical set to authorization-receipt and work-record-receipt): federal_appointment, oversight_principals, operator_role, judgment_owner, proof_policy, policy_boundary, authorization_context_mode, model_authorization_behavior, guardrail_posture, consume_verified_native_state, lossy_neutral_embedded_state, sovereignty_capsule, self_applicable, recursion_depth, prefire, run_state."
 }

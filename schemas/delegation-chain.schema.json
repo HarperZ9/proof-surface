@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://harperz9.github.io/proof-surface/delegation-chain.schema.json",
   "title": "Delegation Chain v0.1",
-  "description": "Identity binding and scoped, attenuating delegation of authority, rooted in a REAL human principal. Layer 1 of the accountability architecture (identity & scoped authority) and the structural INVERSE of the prefire's identity fabrication and privilege escalation. Authority originates with a human (the root hop's 'from' party MUST be kind 'human'); scope MONOTONICALLY ATTENUATES down every hop (a delegate can hold only a subset of its delegator's authority); each hop is bound into a SHA-256 hash-chain and the WHOLE chain is committed into a single chain_binding (id + length + terminal binding) so truncation and extension are detectable; each hop expires and may be revoked. additionalProperties is false at every level and a forbidden-field-name guard rejects prefire suppression keys at every level. The keyless hash-chain proves SELF-CONSISTENT INTEGRITY, NOT non-repudiable identity and NOT tamper-evidence against an adversary who recomputes it — real anti-forgery requires pinning chain_binding out-of-band or verifying an asymmetric signature. Comparison of actions/targets is exact (case-sensitive). The authoritative verifier lives in proof_surface.delegation_chain. Verifier INPUT only — never re-injected into a model as pre-authorized state.",
+  "description": "Identity binding and scoped, attenuating delegation of authority, rooted in a REAL human principal. Layer 1 of the accountability architecture (identity & scoped authority) and the structural INVERSE of the prefire's identity fabrication and privilege escalation. Authority originates with a human (the root hop's 'from' party MUST be kind 'human'); scope MONOTONICALLY ATTENUATES down every hop (a delegate can hold only a subset of its delegator's authority); each hop is bound into a SHA-256 hash-chain and the WHOLE chain is committed into a single chain_binding (id + length + terminal binding) so truncation and extension are detectable; each hop expires and may be revoked. additionalProperties is false at every level and a forbidden-field-name guard rejects prefire suppression keys at every level. The keyless hash-chain proves SELF-CONSISTENT INTEGRITY, NOT non-repudiable identity and NOT tamper-evidence against an adversary who recomputes it -- real anti-forgery requires pinning chain_binding out-of-band or verifying an asymmetric signature. Comparison of actions/targets is exact (case-sensitive). The authoritative verifier lives in proof_surface.delegation_chain. Verifier INPUT only -- never re-injected into a model as pre-authorized state.",
   "type": "object",
   "allOf": [{ "$ref": "#/$defs/noForbiddenKeys" }],
   "additionalProperties": false,
@@ -26,7 +26,7 @@
     "hops": {
       "type": "array",
       "minItems": 1,
-      "description": "Ordered delegation hops, root first. Each hop delegates a subset of the previous hop's authority. The root hop (index 0) is additionally constrained so its 'from' party MUST be a human — authority cannot originate with an agent.",
+      "description": "Ordered delegation hops, root first. Each hop delegates a subset of the previous hop's authority. The root hop (index 0) is additionally constrained so its 'from' party MUST be a human -- authority cannot originate with an agent.",
       "prefixItems": [{ "$ref": "#/$defs/rootHop" }],
       "items": { "$ref": "#/$defs/hop" }
     }
@@ -99,7 +99,7 @@
         },
         "kind": {
           "enum": ["human", "agent"],
-          "description": "Identity kind. The root hop's 'from' must be 'human' — authority cannot originate with an agent."
+          "description": "Identity kind. The root hop's 'from' must be 'human' -- authority cannot originate with an agent."
         },
         "key_id": {
           "type": "string",

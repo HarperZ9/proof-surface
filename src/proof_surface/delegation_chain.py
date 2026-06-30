@@ -1,5 +1,5 @@
 """Delegation chain: identity binding and scoped, attenuating delegation of
-authority — rooted in a REAL human principal.
+authority -- rooted in a REAL human principal.
 
 This is Layer 1 of the accountability architecture: *identity & scoped authority*.
 It is the structural INVERSE of the prefire's identity fabrication and privilege
@@ -8,14 +8,14 @@ escalation.  Where the prefire invented a "federal_appointment", named fictitiou
 the delegation chain:
 
   * roots all authority in a REAL, named human principal (the root hop's `from`
-    party MUST be of kind "human" — an agent cannot be the origin of authority),
+    party MUST be of kind "human" -- an agent cannot be the origin of authority),
   * makes scope MONOTONICALLY ATTENUATE down every hop: a delegate can only ever
     hold a SUBSET of what its delegator holds.  Any hop that claims MORE authority
     than its parent (a wider action set, or a target its parent could not reach)
     is the literal shape of privilege escalation, and is DENIED,
   * binds each hop into a hash-chain (SHA-256 over the hop's canonical content
-    plus the previous hop's binding), and commits the WHOLE chain — its id, its
-    length, and its terminal binding — into a single `chain_binding`,
+    plus the previous hop's binding), and commits the WHOLE chain -- its id, its
+    length, and its terminal binding -- into a single `chain_binding`,
   * hard-requires a per-hop expiry (authority MUST expire) and supports revocation,
   * applies the identical recursive forbidden-field-name guard as the rest of the
     contract family (fail-closed) so the prefire suppression keys can never be
@@ -35,10 +35,10 @@ needs an EXTERNAL trusted anchor, and this module gives you exactly one place to
 it: pass the `chain_binding` you obtained out-of-band as `pinned_chain_binding`, or
 verify an asymmetric signature per hop via `require_signatures=True` +
 `signature_verifier`.  Neither the per-hop binding nor `chain_binding` proves *which*
-party authored a hop — that requires a private key only that party holds.  This
+party authored a hop -- that requires a private key only that party holds.  This
 module refuses to fabricate an assurance it cannot compute with the standard library:
 if a caller demands signature-level identity assurance (`require_signatures=True`)
-and supplies no verifier, `verify_delegation` returns UNVERIFIABLE — never a
+and supplies no verifier, `verify_delegation` returns UNVERIFIABLE -- never a
 fabricated VALID.
 
 Comparison is EXACT (case-sensitive): actions and targets are matched as raw
@@ -100,10 +100,10 @@ _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 class DelegationVerdict:
     """The verifier's output for a delegation chain.
 
-    verdict          — one of VALID / DENIED / UNVERIFIABLE.
-    reasons          — ordered human-readable strings explaining the verdict.
-    effective_scope  — populated ONLY on a VALID verdict: the leaf's effective
-                       authority, the running INTERSECTION of every hop's scope —
+    verdict          -- one of VALID / DENIED / UNVERIFIABLE.
+    reasons          -- ordered human-readable strings explaining the verdict.
+    effective_scope  -- populated ONLY on a VALID verdict: the leaf's effective
+                       authority, the running INTERSECTION of every hop's scope --
                        {"allowed_actions": [...], "allowed_targets": [...],
                        "any_target": bool}, where any_target is True iff no hop
                        restricted targets.  On every DENIED / UNVERIFIABLE verdict
@@ -111,7 +111,7 @@ class DelegationVerdict:
                        any_target False) so a consumer that reads it without first
                        checking `verdict` can never see authority for a chain that
                        was not accepted.
-    effective_expiry — populated ONLY on a VALID verdict: the earliest expires_at
+    effective_expiry -- populated ONLY on a VALID verdict: the earliest expires_at
                        across the chain (ISO-8601).  None on DENIED / UNVERIFIABLE.
     """
 
@@ -134,7 +134,7 @@ def compute_binding(hop: dict[str, Any], prev_binding: str) -> str:
     (sorted keys, compact separators, ASCII) so any party can re-derive it.
 
     Keyless: this gives SELF-CONSISTENT INTEGRITY, not asymmetric-signature
-    identity and not tamper-evidence against a full-document attacker — see the
+    identity and not tamper-evidence against a full-document attacker -- see the
     module docstring.
     """
     payload = {k: v for k, v in hop.items() if k != "binding"}
@@ -143,8 +143,8 @@ def compute_binding(hop: dict[str, Any], prev_binding: str) -> str:
 
 
 def compute_chain_binding(chain_id: str, hop_count: int, leaf_binding: str) -> str:
-    """Commit the WHOLE chain — its id, its exact length, and its terminal hop
-    binding — into a single SHA-256 digest.
+    """Commit the WHOLE chain -- its id, its exact length, and its terminal hop
+    binding -- into a single SHA-256 digest.
 
     This is what closes naive truncation and extension: stripping or appending a
     hop changes `hop_count` and/or `leaf_binding`, so the re-derived chain_binding
@@ -157,7 +157,7 @@ def compute_chain_binding(chain_id: str, hop_count: int, leaf_binding: str) -> s
 
 
 # ---------------------------------------------------------------------------
-# Public API — validation
+# Public API -- validation
 # ---------------------------------------------------------------------------
 
 
@@ -175,7 +175,7 @@ def validate_delegation_chain(data: Any) -> list[Issue]:
     types, closed enums, hex binding/chain_binding format, ISO-8601 timestamps,
     the recursive forbidden-field guard, and the structural rule that the ROOT
     hop's `from` party is a human.  Does NOT check attenuation, integrity, expiry,
-    or that chain_binding actually re-derives — those are the job of
+    or that chain_binding actually re-derives -- those are the job of
     verify_delegation.
     """
     if not isinstance(data, dict):
@@ -210,7 +210,7 @@ def validate_delegation_chain_file(path: Path) -> list[Issue]:
 
 
 # ---------------------------------------------------------------------------
-# Public API — verification
+# Public API -- verification
 # ---------------------------------------------------------------------------
 
 
@@ -226,13 +226,13 @@ def verify_delegation(
 ) -> DelegationVerdict:
     """Verify a delegation chain and (optionally) a specific action against it.
 
-    Closed verdict lattice — default-deny, fail-closed:
+    Closed verdict lattice -- default-deny, fail-closed:
 
       VALID         the chain is structurally sound, rooted in a human, every hop
                     attenuates its parent's scope, every binding re-derives, the
                     chain_binding re-derives (and matches `pinned_chain_binding`
-                    if one was supplied), nothing is expired or revoked, and — if
-                    `action`/`target` are given — the action (on the target) is
+                    if one was supplied), nothing is expired or revoked, and -- if
+                    `action`/`target` are given -- the action (on the target) is
                     within the leaf's effective scope.
       DENIED        a positive failure that was checked and did not pass: scope
                     ESCALATION (a hop claims more than its parent), a broken hop
@@ -244,7 +244,7 @@ def verify_delegation(
       UNVERIFIABLE  the tool itself cannot perform a demanded class of check.
                     Returned ONLY when signature-level identity assurance is
                     demanded (`require_signatures=True`) but no
-                    `signature_verifier` is supplied — the stdlib cannot verify
+                    `signature_verifier` is supplied -- the stdlib cannot verify
                     asymmetric signatures, and this module will not fabricate the
                     assurance.  A supplied verifier that returns False or raises is
                     DENIED, not UNVERIFIABLE (the check was attempted and failed).
@@ -258,7 +258,7 @@ def verify_delegation(
     called once per hop with the hop dict and must return True iff that hop's
     asymmetric signature verifies; any False or raised exception yields DENIED.
     `pinned_chain_binding`, if supplied, is a chain_binding obtained out-of-band;
-    the document's chain_binding must equal it or the verdict is DENIED — this is
+    the document's chain_binding must equal it or the verdict is DENIED -- this is
     the external anchor that turns self-consistency into real anti-forgery.
     """
     empty_scope = {"allowed_actions": [], "allowed_targets": [], "any_target": False}
@@ -283,7 +283,7 @@ def verify_delegation(
         expected = compute_binding(hop, prev_binding)
         if hop.get("binding") != expected:
             reasons.append(
-                f"hop[{i}] integrity broken: binding does not re-derive — the "
+                f"hop[{i}] integrity broken: binding does not re-derive -- the "
                 f"chain has been altered at or before this hop"
             )
             return DelegationVerdict(DENIED, reasons, empty_scope, None)
@@ -299,7 +299,7 @@ def verify_delegation(
     if chain.get("chain_binding") != expected_chain_binding:
         reasons.append(
             "chain_binding does not re-derive: the hop count or terminal binding "
-            "has changed — the chain may have been truncated or extended"
+            "has changed -- the chain may have been truncated or extended"
         )
         return DelegationVerdict(DENIED, reasons, empty_scope, None)
 
@@ -308,7 +308,7 @@ def verify_delegation(
     # value the verifier obtained out-of-band is what defeats that.
     if pinned_chain_binding is not None and chain["chain_binding"] != pinned_chain_binding:
         reasons.append(
-            "chain_binding does not match the pinned out-of-band value — the "
+            "chain_binding does not match the pinned out-of-band value -- the "
             "document does not correspond to the anchored chain"
         )
         return DelegationVerdict(DENIED, reasons, empty_scope, None)
@@ -331,7 +331,7 @@ def verify_delegation(
         if escalated_actions:
             reasons.append(
                 f"hop[{i}] escalates authority: claims action(s) "
-                f"{sorted(escalated_actions)} that hop[{i - 1}] does not hold — "
+                f"{sorted(escalated_actions)} that hop[{i - 1}] does not hold -- "
                 f"a delegate cannot hold more than its delegator"
             )
             return DelegationVerdict(DENIED, reasons, empty_scope, None)
@@ -343,7 +343,7 @@ def verify_delegation(
                 reasons.append(
                     f"hop[{i}] escalates authority: parent hop[{i - 1}] is "
                     f"restricted to targets {sorted(p_targets)} but this hop "
-                    f"claims ANY target — a delegate cannot widen target scope"
+                    f"claims ANY target -- a delegate cannot widen target scope"
                 )
                 return DelegationVerdict(DENIED, reasons, empty_scope, None)
             escalated_targets = set(c_targets) - set(p_targets)
@@ -376,7 +376,7 @@ def verify_delegation(
     # --- Revocation -----------------------------------------------------------
     for i, hop in enumerate(hops):
         if hop.get("revoked") is True:
-            reasons.append(f"hop[{i}] is revoked — the delegation no longer holds")
+            reasons.append(f"hop[{i}] is revoked -- the delegation no longer holds")
             return DelegationVerdict(DENIED, reasons, empty_scope, None)
 
     # --- Expiry (effective expiry = earliest expires_at across the chain) -----
@@ -403,11 +403,11 @@ def verify_delegation(
     # --- Signature-level identity assurance (honest fail-closed) --------------
     if require_signatures:
         if signature_verifier is None:
-            # The tool itself cannot perform asymmetric verification — UNVERIFIABLE,
+            # The tool itself cannot perform asymmetric verification -- UNVERIFIABLE,
             # never a fabricated VALID.  This is the ONLY UNVERIFIABLE path.
             reasons.append(
                 "signature-level identity assurance was required, but no "
-                "signature_verifier was supplied — the hash-chain proves "
+                "signature_verifier was supplied -- the hash-chain proves "
                 "INTEGRITY, not non-repudiable identity, and this module will "
                 "not fabricate an asymmetric-signature verdict it cannot compute"
             )
@@ -417,7 +417,7 @@ def verify_delegation(
                 ok = signature_verifier(hop)
             except Exception as exc:
                 # A supplied verifier that errors did NOT confirm the signature.
-                # The check was attempted and failed — that is a positive failure
+                # The check was attempted and failed -- that is a positive failure
                 # (DENIED), not "the tool cannot check" (UNVERIFIABLE).
                 reasons.append(f"hop[{i}] signature verifier raised: {exc!r}")
                 return DelegationVerdict(DENIED, reasons, empty_scope, None)
@@ -430,7 +430,7 @@ def verify_delegation(
     # authorisation question, so fail closed rather than silently ignore it.
     if target is not None and action is None:
         reasons.append(
-            "target was supplied without an action — authority is action-on-target "
+            "target was supplied without an action -- authority is action-on-target "
             "and cannot be evaluated from a target alone (default-deny)"
         )
         return DelegationVerdict(DENIED, reasons, empty_scope, None)
@@ -468,7 +468,7 @@ def verify_delegation(
 
 def _reject_forbidden(node: Any, path: str, issues: list[Issue]) -> None:
     """Recursively reject any key whose name is in FORBIDDEN_FIELDS (the shared
-    canon — same set, same fail-closed mechanism as the rest of the family)."""
+    canon -- same set, same fail-closed mechanism as the rest of the family)."""
     if isinstance(node, dict):
         for key in sorted(node):
             child = f"{path}.{key}"
@@ -519,7 +519,7 @@ def _validate_party(value: Any, path: str, *, is_root: bool, issues: list[Issue]
         # Authority must originate with a human; an agent cannot be the root.
         issues.append(Issue(
             f"{path}.kind",
-            "the root hop's 'from' party must be a human — authority cannot "
+            "the root hop's 'from' party must be a human -- authority cannot "
             "originate with an agent",
         ))
     key_id = value.get("key_id")

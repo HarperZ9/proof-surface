@@ -6,7 +6,7 @@
     {
       "path": "valid/minimal.request.json",
       "expected": "valid",
-      "reason": "all required fields, structurally valid authorization receipt, positive budget, MATCH state — shape is valid"
+      "reason": "all required fields, structurally valid authorization receipt, positive budget, MATCH state -- shape is valid"
     },
     {
       "path": "invalid/forbidden-prefire-root.request.json",

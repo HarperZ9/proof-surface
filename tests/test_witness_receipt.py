@@ -50,7 +50,7 @@ def test_conformance_fixtures_match_manifest():
 
 
 # ---------------------------------------------------------------------------
-# Hardening regressions (bulletproofing audit) — authority denylist
+# Hardening regressions (bulletproofing audit) -- authority denylist
 # ---------------------------------------------------------------------------
 
 
