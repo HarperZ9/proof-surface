@@ -1,21 +1,21 @@
 """Tests for the evaluation-contract (Contract 4).
 
 Contract invariants exercised:
-  * Forbidden-field guard — recursive, fail-closed, same 16-key set as all other
+  * Forbidden-field guard -- recursive, fail-closed, same 16-key set as all other
     proof-surface contracts.
   * additionalProperties:false at root and every nested criterion object.
   * Closed direction enum (">=" | "<=").
   * Criteria array must have >= 1 entry.
   * evaluate() decision rules:
-      deploy     — every required criterion passes.
-      block      — any required criterion fails.
-      needs-human — required criterion straddles threshold (uncertainty).
-      needs-human — required criterion has no matching result (missing).
+      deploy     -- every required criterion passes.
+      block      -- any required criterion fails.
+      needs-human -- required criterion straddles threshold (uncertainty).
+      needs-human -- required criterion has no matching result (missing).
   * Uncertainty-aware: [measured - uncertainty, measured + uncertainty] straddles
     threshold -> "uncertain" -> never deploy.
   * Non-required criteria do not affect the top-level decision.
   * EvalDecision is advisory only; it never grants authority.
-  * Conformance manifest — every fixture must match its declared expected result.
+  * Conformance manifest -- every fixture must match its declared expected result.
 """
 
 from __future__ import annotations
@@ -66,7 +66,7 @@ def _result(name: str, measured: float, uncertainty: float = 0.0) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Structural validation — happy path
+# Structural validation -- happy path
 # ---------------------------------------------------------------------------
 
 
@@ -209,7 +209,7 @@ def test_notes_must_be_string_when_present():
 
 
 # ---------------------------------------------------------------------------
-# evaluate() — deploy when all required pass
+# evaluate() -- deploy when all required pass
 # ---------------------------------------------------------------------------
 
 
@@ -276,7 +276,7 @@ def test_evaluate_non_required_fail_does_not_block():
 
 
 # ---------------------------------------------------------------------------
-# evaluate() — block on required fail
+# evaluate() -- block on required fail
 # ---------------------------------------------------------------------------
 
 
@@ -336,7 +336,7 @@ def test_evaluate_block_takes_precedence_over_uncertain():
 
 
 # ---------------------------------------------------------------------------
-# evaluate() — needs-human on uncertainty (straddle)
+# evaluate() -- needs-human on uncertainty (straddle)
 # ---------------------------------------------------------------------------
 
 
@@ -388,7 +388,7 @@ def test_evaluate_zero_uncertainty_just_below_fails():
 
 
 # ---------------------------------------------------------------------------
-# evaluate() — needs-human on missing result
+# evaluate() -- needs-human on missing result
 # ---------------------------------------------------------------------------
 
 
@@ -453,7 +453,7 @@ def test_evaluate_missing_non_required_does_not_escalate():
 
 
 # ---------------------------------------------------------------------------
-# evaluate() — EvalDecision shape
+# evaluate() -- EvalDecision shape
 # ---------------------------------------------------------------------------
 
 
@@ -483,7 +483,7 @@ def test_conformance_fixtures_match_manifest():
 
 
 # ---------------------------------------------------------------------------
-# Hardening regressions (bulletproofing audit) — evaluate() validates first
+# Hardening regressions (bulletproofing audit) -- evaluate() validates first
 # ---------------------------------------------------------------------------
 
 

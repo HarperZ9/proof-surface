@@ -97,7 +97,7 @@ def _load_shape_fixture(relative_path: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Shape validation — happy path
+# Shape validation -- happy path
 # ---------------------------------------------------------------------------
 
 
@@ -294,7 +294,7 @@ def test_state_is_optional():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_gate — allow path (all checks pass)
+# evaluate_gate -- allow path (all checks pass)
 # ---------------------------------------------------------------------------
 
 
@@ -343,7 +343,7 @@ def test_allow_with_matching_digests():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_gate — deny: authorization failures
+# evaluate_gate -- deny: authorization failures
 # ---------------------------------------------------------------------------
 
 
@@ -406,7 +406,7 @@ def test_deny_on_empty_allowed_actions():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_gate — deny: budget failures
+# evaluate_gate -- deny: budget failures
 # ---------------------------------------------------------------------------
 
 
@@ -459,7 +459,7 @@ def test_deny_on_remaining_actions_zero_no_estimated_cost():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_gate — needs-human: unknown budget
+# evaluate_gate -- needs-human: unknown budget
 # ---------------------------------------------------------------------------
 
 
@@ -492,7 +492,7 @@ def test_no_estimated_cost_budget_is_not_applicable():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_gate — deny: state failures
+# evaluate_gate -- deny: state failures
 # ---------------------------------------------------------------------------
 
 
@@ -532,7 +532,7 @@ def test_deny_on_drift_plus_digest_mismatch():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_gate — needs-human: state unknown
+# evaluate_gate -- needs-human: state unknown
 # ---------------------------------------------------------------------------
 
 
@@ -551,7 +551,7 @@ def test_state_absent_is_not_applicable():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_gate — fail-closed precedence: deny beats needs-human
+# evaluate_gate -- fail-closed precedence: deny beats needs-human
 # ---------------------------------------------------------------------------
 
 
@@ -580,7 +580,7 @@ def test_deny_beats_unknown_when_state_drifts_and_budget_unknown():
 
 
 # ---------------------------------------------------------------------------
-# evaluate_gate — structural invalidity causes deny
+# evaluate_gate -- structural invalidity causes deny
 # ---------------------------------------------------------------------------
 
 
@@ -604,7 +604,7 @@ def test_forbidden_field_in_request_causes_deny():
 
 
 def test_gate_decision_is_dataclass_not_callable():
-    """GateDecision must be a plain data record — not a callable or executable."""
+    """GateDecision must be a plain data record -- not a callable or executable."""
     req = _valid_request()
     decision = evaluate_gate(req)
     assert isinstance(decision, GateDecision)
@@ -616,7 +616,7 @@ def test_gate_decision_is_dataclass_not_callable():
 
 
 def test_gate_decision_allow_has_no_authority_language():
-    """An allow decision must not claim to grant authority — just reports pass."""
+    """An allow decision must not claim to grant authority -- just reports pass."""
     req = _valid_request()
     decision = evaluate_gate(req)
     assert decision.decision == peg.ALLOW

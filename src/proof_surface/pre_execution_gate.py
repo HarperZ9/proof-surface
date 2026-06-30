@@ -18,11 +18,11 @@ Design principles
 
 Decision aggregation
 --------------------
-  allow        — authorization=pass AND budget in {pass,not-applicable}
+  allow        -- authorization=pass AND budget in {pass,not-applicable}
                  AND state in {pass,not-applicable}
                  AND human_gap in {pass,not-applicable}
-  deny         — any check is "fail"
-  needs-human  — no "fail", but at least one check is "unknown"
+  deny         -- any check is "fail"
+  needs-human  -- no "fail", but at least one check is "unknown"
 """
 
 from __future__ import annotations
@@ -91,9 +91,9 @@ STATE_FIELDS = {"witness_verdict", "target_digest", "expected_digest"}
 class GateDecision:
     """The gate's advisory output.
 
-    decision  — one of "allow", "deny", "needs-human".
-    reasons   — ordered list of human-readable strings explaining the decision.
-    checks    — per-dimension result; each value in {pass,fail,unknown,not-applicable}.
+    decision  -- one of "allow", "deny", "needs-human".
+    reasons   -- ordered list of human-readable strings explaining the decision.
+    checks    -- per-dimension result; each value in {pass,fail,unknown,not-applicable}.
                 Keys: "authorization", "budget", "state", "human_gap".
     """
 
@@ -229,7 +229,7 @@ def _check_authorization(
     if struct_issues:
         first = struct_issues[0]
         return FAIL, [
-            f"invalid authorization: {first.path} — {first.message}",
+            f"invalid authorization: {first.path} -- {first.message}",
         ]
 
     # Structural validity confirmed; now check the specific action.
@@ -263,7 +263,7 @@ def _check_budget(
             if isinstance(ra, (int, float)) and not isinstance(ra, bool):
                 if ra <= 0:
                     return FAIL, [
-                        "budget denied: remaining_actions is 0 or negative — no budget remaining"
+                        "budget denied: remaining_actions is 0 or negative -- no budget remaining"
                     ]
         return NOT_APPLICABLE, []
 
@@ -281,9 +281,9 @@ def _check_budget(
             continue  # Dimension not estimated; skip.
         remaining = budget.get(budget_key)
         if remaining is None:
-            # Estimated cost given, but no remaining budget — cannot confirm.
+            # Estimated cost given, but no remaining budget -- cannot confirm.
             reasons.append(
-                f"budget unknown: estimated {cost_key}={estimated} but {budget_key} is absent — cannot confirm budget"
+                f"budget unknown: estimated {cost_key}={estimated} but {budget_key} is absent -- cannot confirm budget"
             )
             if result != FAIL:
                 result = UNKNOWN
@@ -300,7 +300,7 @@ def _check_budget(
         if isinstance(ra, (int, float)) and not isinstance(ra, bool):
             if ra <= 0:
                 reasons.append(
-                    "budget denied: remaining_actions is 0 or negative — no budget remaining"
+                    "budget denied: remaining_actions is 0 or negative -- no budget remaining"
                 )
                 result = FAIL
 
@@ -328,18 +328,18 @@ def _check_state(
     verdict = state.get("witness_verdict")
     if verdict is not None:
         if verdict in WITNESS_CONFIRMING:
-            pass  # positive confirmation — leaves result at PASS
+            pass  # positive confirmation -- leaves result at PASS
         elif verdict == WITNESS_DRIFT:
-            reasons.append("state denied: witness_verdict is DRIFT — target has drifted from expected state")
+            reasons.append("state denied: witness_verdict is DRIFT -- target has drifted from expected state")
             result = FAIL
         elif verdict == WITNESS_VIEW_DIFFERS:
-            reasons.append("state denied: witness_verdict is VIEW_DIFFERS_FROM_SOURCE — view does not match source")
+            reasons.append("state denied: witness_verdict is VIEW_DIFFERS_FROM_SOURCE -- view does not match source")
             result = FAIL
         elif verdict == WITNESS_QUARANTINE:
-            reasons.append("state denied: witness_verdict is QUARANTINE_READ_PATH_DIVERGENCE — read path is quarantined")
+            reasons.append("state denied: witness_verdict is QUARANTINE_READ_PATH_DIVERGENCE -- read path is quarantined")
             result = FAIL
         elif verdict == WITNESS_UNVERIFIABLE:
-            reasons.append("state unknown: witness_verdict is UNVERIFIABLE — cannot confirm target state")
+            reasons.append("state unknown: witness_verdict is UNVERIFIABLE -- cannot confirm target state")
             if result != FAIL:
                 result = UNKNOWN
 
@@ -350,14 +350,14 @@ def _check_state(
         # against (or vice versa) cannot positively confirm integrity. Fail-closed
         # to UNKNOWN (-> needs-human), never a silent PASS.
         reasons.append(
-            "state unknown: exactly one of target_digest/expected_digest is present — cannot confirm integrity"
+            "state unknown: exactly one of target_digest/expected_digest is present -- cannot confirm integrity"
         )
         if result != FAIL:
             result = UNKNOWN
     elif target_digest is not None and expected_digest is not None:
         if target_digest != expected_digest:
             reasons.append(
-                "state denied: target_digest does not match expected_digest — integrity check failed"
+                "state denied: target_digest does not match expected_digest -- integrity check failed"
             )
             result = FAIL
 
@@ -373,7 +373,7 @@ def _check_state(
 
 def _reject_forbidden_recursive(node: Any, path: str, issues: list[Issue]) -> None:
     """Recursively reject any key whose name is in FORBIDDEN_FIELDS (same set as
-    authorization-receipt and work-record — permanent, fail-closed guard)."""
+    authorization-receipt and work-record -- permanent, fail-closed guard)."""
     if isinstance(node, dict):
         for key in sorted(node):
             child = f"{path}.{key}"

@@ -9,7 +9,7 @@ reviewer-facing artifact. It is hard-pinned so it can never drift into a prefire
     prefire capsule/meta keys by name (none contains a token the lexical authority
     denylist matches, so they must be blocked structurally).
   * decision-bearing fields are closed enums.
-  * a required direction:"output-only" marker — emitted outward, never read back
+  * a required direction:"output-only" marker -- emitted outward, never read back
     in as model/session bootstrap state.
 """
 

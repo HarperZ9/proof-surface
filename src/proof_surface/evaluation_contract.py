@@ -44,7 +44,7 @@ CRITERION_FIELDS = {"name", "metric", "threshold", "direction", "required"}
 # Closed enum for comparison direction.
 DIRECTIONS = {">=", "<="}
 
-# Decision outcomes — closed enum.
+# Decision outcomes -- closed enum.
 DECISIONS = {"deploy", "block", "needs-human"}
 
 # Field NAMES lifted verbatim from the excluded warden-prefire capsule/meta.
@@ -79,9 +79,9 @@ FORBIDDEN_FIELDS = {
 class EvalDecision:
     """Advisory output of evaluate().
 
-    decision       — one of "deploy", "block", "needs-human".
-    reasons        — ordered list of human-readable strings.
-    per_criterion  — mapping of criterion name -> "pass"|"fail"|"uncertain"|"missing".
+    decision       -- one of "deploy", "block", "needs-human".
+    reasons        -- ordered list of human-readable strings.
+    per_criterion  -- mapping of criterion name -> "pass"|"fail"|"uncertain"|"missing".
     """
 
     decision: str
@@ -116,15 +116,15 @@ def evaluate(contract: dict[str, Any], results: list[dict[str, Any]]) -> EvalDec
     results items: { name (str), measured (number), uncertainty? (>=0, default 0) }
 
     Per-criterion verdict:
-      "pass"      — criterion satisfied (direction check clears with no straddle)
-      "fail"      — criterion not satisfied (direction check fails outside uncertainty)
-      "uncertain" — [measured-uncertainty, measured+uncertainty] straddles threshold
-      "missing"   — no result entry found for this criterion name
+      "pass"      -- criterion satisfied (direction check clears with no straddle)
+      "fail"      -- criterion not satisfied (direction check fails outside uncertainty)
+      "uncertain" -- [measured-uncertainty, measured+uncertainty] straddles threshold
+      "missing"   -- no result entry found for this criterion name
 
     Aggregation rule (default-deny, never deploy on uncertainty):
-      deploy      — every required criterion is "pass"
-      block       — any required criterion is "fail"
-      needs-human — no required "fail", but at least one required criterion is
+      deploy      -- every required criterion is "pass"
+      block       -- any required criterion is "fail"
+      needs-human -- no required "fail", but at least one required criterion is
                     "uncertain" or "missing"
 
     The contract is structurally validated first (mirroring evaluate_gate /
@@ -136,7 +136,7 @@ def evaluate(contract: dict[str, Any], results: list[dict[str, Any]]) -> EvalDec
     if issues:
         return EvalDecision(
             decision="block",
-            reasons=[f"contract invalid: {issues[0].path} — {issues[0].message}"],
+            reasons=[f"contract invalid: {issues[0].path} -- {issues[0].message}"],
             per_criterion={},
         )
 
@@ -202,7 +202,7 @@ def evaluate(contract: dict[str, Any], results: list[dict[str, Any]]) -> EvalDec
         if isinstance(c, dict) and c.get("required") and c.get("name") in per_criterion
     ]
     # Also count required criteria that are flat missing (never entered per_criterion
-    # at all, which can happen if criterion.name is not a non-empty string — unlikely
+    # at all, which can happen if criterion.name is not a non-empty string -- unlikely
     # given schema, but guard anyway).
     for c in criteria:
         if not isinstance(c, dict):
@@ -264,7 +264,7 @@ def _compare(
             return "fail"
         return "uncertain"
     else:
-        # Unrecognized direction — fail closed (default-deny). validate_*
+        # Unrecognized direction -- fail closed (default-deny). validate_*
         # rejects this upstream, but _compare must not silently pick a branch.
         return "fail"
 

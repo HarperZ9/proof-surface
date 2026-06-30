@@ -21,7 +21,7 @@
     {
       "path": "invalid/missing-expires-at.receipt.json",
       "expected": "invalid",
-      "reason": "expires_at is required — authority must always expire"
+      "reason": "expires_at is required -- authority must always expire"
     },
     {
       "path": "invalid/unknown-root-field.receipt.json",

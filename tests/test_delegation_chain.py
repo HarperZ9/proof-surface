@@ -1,7 +1,7 @@
 """Tests for the delegation chain (Contract / Layer 1): identity & scoped authority.
 
 Exercises:
-  * structural validation — additionalProperties:false, required fields, closed
+  * structural validation -- additionalProperties:false, required fields, closed
     enums, hex binding format, ISO timestamps, recursive forbidden-field guard,
     and the structural rule that the ROOT hop's 'from' party is a human,
   * the hash-chain binding (compute_binding determinism + tamper-evidence),
@@ -126,7 +126,7 @@ def test_unknown_root_field_rejected():
 def test_unknown_hop_field_rejected():
     hop = _hop(HUMAN, AGENT_A, ["read"], [])
     signed = _sign([hop])
-    signed[0]["weight"] = 1  # added after signing — unknown field
+    signed[0]["weight"] = 1  # added after signing -- unknown field
     assert any("weight" in i.path for i in validate_delegation_chain(_chain(*signed)))
 
 
@@ -258,7 +258,7 @@ def test_verify_denies_target_escalation_outside_parent():
 def test_verify_allows_target_narrowing():
     chain = _chain(*_sign([
         _hop(HUMAN, AGENT_A, ["read"], ["repo:x", "repo:y"]),
-        _hop(AGENT_A, AGENT_B, ["read"], ["repo:x"]),  # subset — fine
+        _hop(AGENT_A, AGENT_B, ["read"], ["repo:x"]),  # subset -- fine
     ]))
     assert verify_delegation(chain, now=NOW).verdict == VALID
 
@@ -394,7 +394,7 @@ def test_require_signatures_with_failing_verifier_is_denied():
 
 
 def test_require_signatures_with_raising_verifier_is_denied():
-    # A SUPPLIED verifier that raises did not confirm the signature — the check was
+    # A SUPPLIED verifier that raises did not confirm the signature -- the check was
     # attempted and failed, which is a positive failure (DENIED), not "the tool
     # cannot check" (UNVERIFIABLE is reserved for the no-verifier case).
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
@@ -566,6 +566,6 @@ def test_json_schema_matches_python_validator():
         schema_ok = validator.is_valid(data)
         python_ok = validate_delegation_chain(data) == []
         assert schema_ok == python_ok, (
-            f"{fixture['path']}: schema={schema_ok} python={python_ok} — "
+            f"{fixture['path']}: schema={schema_ok} python={python_ok} -- "
             f"schema and validator disagree"
         )

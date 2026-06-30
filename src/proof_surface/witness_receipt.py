@@ -1,4 +1,4 @@
-"""Witness-receipt validator — consumer-side, mirrors EMET's published shape.
+"""Witness-receipt validator -- consumer-side, mirrors EMET's published shape.
 
 EMET (the byte-witness spine) stays self-contained and stdlib-only for
 independent re-derivability, so it is NOT a dependency of this package. This
@@ -33,7 +33,7 @@ WITNESS_VERDICTS = {
 # EMET's FORBIDDEN set (verdict.py): EMET's {TRUSTED, APPROVED, SAFE, ALLOWED,
 # PERMITTED, AUTHORIZED, BLESSED, VERIFIED_AUTHORITY} plus CERTIFIED, COMPLIANT.
 # Being a superset means anything EMET blocks, this consumer-side validator
-# also blocks — never the reverse.
+# also blocks -- never the reverse.
 FORBIDDEN_AUTHORITY_TOKENS = {
     "TRUSTED",
     "APPROVED",
@@ -100,7 +100,7 @@ def _reject_authority_language(node: Any, path: str, issues: list[Issue]) -> Non
                 issues.append(Issue(path, f"forbidden authority token: {token}"))
     elif isinstance(node, dict):
         for key, value in node.items():
-            # Scan KEYS as well as values — an authority word must not hide as a
+            # Scan KEYS as well as values -- an authority word must not hide as a
             # field name. (reject_unknown blocks unknown keys upstream; this is a
             # complete, defence-in-depth guard regardless of caller.)
             if isinstance(key, str):

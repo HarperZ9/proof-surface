@@ -21,6 +21,11 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+Homepage = "https://github.com/HarperZ9/proof-surface"
+Repository = "https://github.com/HarperZ9/proof-surface"
+Issues = "https://github.com/HarperZ9/proof-surface/issues"
+
 [project.optional-dependencies]
 test = ["pytest>=8", "jsonschema>=4.18"]
 

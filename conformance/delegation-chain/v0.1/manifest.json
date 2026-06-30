@@ -8,7 +8,7 @@
     { "path": "invalid/forbidden-prefire-root.chain.json", "expected": "invalid", "reason": "prefire authorization-suppression key 'prefire' at root" },
     { "path": "invalid/forbidden-nested-in-party.chain.json", "expected": "invalid", "reason": "prefire key 'sovereignty_capsule' nested inside a party must be rejected by the recursive forbidden-field guard" },
     { "path": "invalid/unknown-root-field.chain.json", "expected": "invalid", "reason": "unknown root field must fail closed (additionalProperties:false)" },
-    { "path": "invalid/agent-root.chain.json", "expected": "invalid", "reason": "the root hop's 'from' party is an agent — authority cannot originate with an agent" },
+    { "path": "invalid/agent-root.chain.json", "expected": "invalid", "reason": "the root hop's 'from' party is an agent -- authority cannot originate with an agent" },
     { "path": "invalid/bad-binding-format.chain.json", "expected": "invalid", "reason": "binding is not a 64-char lowercase hex SHA-256 digest" },
     { "path": "invalid/empty-hops.chain.json", "expected": "invalid", "reason": "hops must be a non-empty array" },
     { "path": "invalid/bad-party-kind.chain.json", "expected": "invalid", "reason": "party kind outside the closed enum {human, agent}" },

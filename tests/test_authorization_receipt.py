@@ -4,13 +4,13 @@ Mirrors the style of test_work_record.py exactly.  Every assertion is
 meaningful; no "it didn't crash" tests.
 
 Contract invariants exercised here:
-  * Forbidden-field guard — recursive, fail-closed, same set as work-record.
-  * Required expiry — expires_at is mandatory; authority must expire.
-  * Default-deny scope — empty allowed_actions authorizes nothing.
-  * check_action helper — out-of-scope denied, in-scope allowed, revoked denied,
+  * Forbidden-field guard -- recursive, fail-closed, same set as work-record.
+  * Required expiry -- expires_at is mandatory; authority must expire.
+  * Default-deny scope -- empty allowed_actions authorizes nothing.
+  * check_action helper -- out-of-scope denied, in-scope allowed, revoked denied,
     expired denied.
   * additionalProperties:false at root and every nested object.
-  * Conformance manifest — every fixture must match its declared expected result.
+  * Conformance manifest -- every fixture must match its declared expected result.
 """
 
 from __future__ import annotations
@@ -66,7 +66,7 @@ def _receipt(
 
 
 # ---------------------------------------------------------------------------
-# Structural validation — happy path
+# Structural validation -- happy path
 # ---------------------------------------------------------------------------
 
 
@@ -184,7 +184,7 @@ def test_unknown_agent_field_rejected():
 
 
 # ---------------------------------------------------------------------------
-# Scope shape — default-deny
+# Scope shape -- default-deny
 # ---------------------------------------------------------------------------
 
 
@@ -278,7 +278,7 @@ def test_notes_must_be_string_when_present():
 
 
 # ---------------------------------------------------------------------------
-# check_action — default-deny and positive-allow
+# check_action -- default-deny and positive-allow
 # ---------------------------------------------------------------------------
 
 

@@ -9,7 +9,7 @@
     "agent": {
       "id": "agent:proof-surface-keystone"
     },
-    "intent": "Missing planned_action must be rejected — required field.",
+    "intent": "Missing planned_action must be rejected -- required field.",
     "scope": {
       "allowed_actions": ["read_file"],
       "allowed_targets": []

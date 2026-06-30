@@ -1,7 +1,7 @@
 """Proof-surface packet validator (contract v0.1).
 
 A neutral evidence/index packet that producers emit and the proof-index consumes.
-Consolidated single source of truth — previously copy-pasted across
+Consolidated single source of truth -- previously copy-pasted across
 model-provenance-validator, public-surface-sweeper, and the proof-surface-report
 adapter.
 """

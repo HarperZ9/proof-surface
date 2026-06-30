@@ -13,7 +13,7 @@
     "agent": {
       "id": "agent:proof-surface-keystone"
     },
-    "intent": "Invalid witness_verdict must be rejected — must be MATCH, DRIFT, or UNVERIFIABLE.",
+    "intent": "Invalid witness_verdict must be rejected -- must be MATCH, DRIFT, or UNVERIFIABLE.",
     "scope": {
       "allowed_actions": ["read_file"],
       "allowed_targets": []

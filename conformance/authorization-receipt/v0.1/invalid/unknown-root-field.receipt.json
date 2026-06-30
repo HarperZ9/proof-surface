@@ -8,7 +8,7 @@
   "agent": {
     "id": "agent:proof-surface-keystone"
   },
-  "intent": "Attempt to add an undeclared root field — must fail closed.",
+  "intent": "Attempt to add an undeclared root field -- must fail closed.",
   "scope": {
     "allowed_actions": ["read_file"],
     "allowed_targets": []

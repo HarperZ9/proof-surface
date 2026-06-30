@@ -13,7 +13,7 @@
     "agent": {
       "id": "agent:proof-surface-keystone"
     },
-    "intent": "Malformed target_digest must be rejected — must be 64 lowercase hex chars.",
+    "intent": "Malformed target_digest must be rejected -- must be 64 lowercase hex chars.",
     "scope": {
       "allowed_actions": ["read_file"],
       "allowed_targets": []

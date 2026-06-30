@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://harperz9.github.io/proof-surface/authorization-receipt.schema.json",
   "title": "Authorization Receipt v0.1",
-  "description": "A verifiable record of a REAL, explicit, least-privilege, expiring, revocable grant of authority from a human principal to an agent. The structural INWARD complement to the work-record receipt (outward). This is verifier INPUT — a checker validates an action against the receipt — it is NEVER read back into a model context as pre-authorized state. additionalProperties is false at every level. Authority MUST expire (expires_at required). Scope is an explicit ALLOWLIST (default-deny: empty allowed_actions = nothing permitted). The authoritative recursive forbidden-field-name guard lives in proof_surface.authorization_receipt.",
+  "description": "A verifiable record of a REAL, explicit, least-privilege, expiring, revocable grant of authority from a human principal to an agent. The structural INWARD complement to the work-record receipt (outward). This is verifier INPUT -- a checker validates an action against the receipt -- it is NEVER read back into a model context as pre-authorized state. additionalProperties is false at every level. Authority MUST expire (expires_at required). Scope is an explicit ALLOWLIST (default-deny: empty allowed_actions = nothing permitted). The authoritative recursive forbidden-field-name guard lives in proof_surface.authorization_receipt.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -107,5 +107,5 @@
       "description": "Optional human-readable annotation for reviewers."
     }
   },
-  "$comment": "Forbidden field names (rejected by name at every object level by the reference validator — the identical set as work-record-receipt): federal_appointment, oversight_principals, operator_role, judgment_owner, proof_policy, policy_boundary, authorization_context_mode, model_authorization_behavior, guardrail_posture, consume_verified_native_state, lossy_neutral_embedded_state, sovereignty_capsule, self_applicable, recursion_depth, prefire, run_state."
+  "$comment": "Forbidden field names (rejected by name at every object level by the reference validator -- the identical set as work-record-receipt): federal_appointment, oversight_principals, operator_role, judgment_owner, proof_policy, policy_boundary, authorization_context_mode, model_authorization_behavior, guardrail_posture, consume_verified_native_state, lossy_neutral_embedded_state, sovereignty_capsule, self_applicable, recursion_depth, prefire, run_state."
 }

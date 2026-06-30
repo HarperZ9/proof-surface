@@ -16,7 +16,7 @@
     "agent": {
       "id": "agent:proof-surface-keystone"
     },
-    "intent": "Negative estimated cost must be rejected — non-negative number required.",
+    "intent": "Negative estimated cost must be rejected -- non-negative number required.",
     "scope": {
       "allowed_actions": ["read_file"],
       "allowed_targets": []
