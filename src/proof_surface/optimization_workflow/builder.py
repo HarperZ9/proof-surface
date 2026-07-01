@@ -13,6 +13,7 @@ from typing import Any
 
 from .._decision import derive_decision_summary
 from .._verdict import verdict_for_measurement
+from ._branches import derive_baseline_match
 from .packet import PACKET_VERSION
 
 
@@ -49,10 +50,12 @@ def build_optimization_workflow_packet(
     scope: str,
     packet_id: str,
     boundary: dict[str, Any] | None = None,
+    solver_branches: list[dict[str, Any]] | None = None,
     uncertainty: list[str] | None = None,
 ) -> dict[str, Any]:
     overall = _derive_verdict(solver, baseline)
-    return {
+    tolerance = solver.get("tolerance")
+    packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
         "claim": claim,
@@ -69,6 +72,12 @@ def build_optimization_workflow_packet(
         "uncertainty": list(uncertainty or []),
         "decision_summary": derive_decision_summary(overall),
     }
+    if solver_branches is not None:
+        packet["solver_branches"] = [
+            {**dict(b), "baseline_match": derive_baseline_match(b, baseline, tolerance)}
+            for b in solver_branches
+        ]
+    return packet
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
