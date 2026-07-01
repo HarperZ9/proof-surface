@@ -2,8 +2,11 @@
 
 The bundle ties RAW health receipts, EMET witness receipts, Sensorium provenance
 receipts, coherence observations, and proof-surface gate decisions together by
-digest and reference. It intentionally does not embed heavy payloads or grant
-authority; it is a reviewer/tool handoff contract.
+digest and reference, and carries the flagship receipt kinds (crucible
+assessments, forum routes, index context envelopes, gather corpora, learn
+receipts) over the same spine. RECEIPT_KINDS stays a closed set: an entry
+claiming any kind outside it is rejected. It intentionally does not embed heavy
+payloads or grant authority; it is a reviewer/tool handoff contract.
 """
 
 from __future__ import annotations
@@ -20,7 +23,12 @@ ORGAN_BUNDLE_VERSION = "0.1"
 
 RECEIPT_KINDS = {
     "coherence-observation",
+    "crucible-assessment",
     "emet-witness",
+    "forum-route",
+    "gather-corpus",
+    "index-context-envelope",
+    "learn-receipt",
     "proof-surface-gate",
     "provenance-receipt",
     "raw-health",
