@@ -38,6 +38,7 @@ def build_research_claim_packet(
     uncertainty: list[str] | None = None,
     promotion: str | None = None,
     formal: dict[str, Any] | None = None,
+    failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     per_check: list[dict[str, Any]] = []
     statuses: list[str] = []
@@ -68,7 +69,7 @@ def build_research_claim_packet(
         else ("CRUCIBLE_MATCH" if overall == "MATCH" else "UNVERIFIABLE")
     )
 
-    return {
+    packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
         "claim": claim,
@@ -88,6 +89,9 @@ def build_research_claim_packet(
         ),
         **({"formal": formal} if formal is not None else {}),
     }
+    if failure_labels is not None:
+        packet["failure_labels"] = list(failure_labels)
+    return packet
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:

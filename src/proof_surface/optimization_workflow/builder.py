@@ -52,6 +52,7 @@ def build_optimization_workflow_packet(
     boundary: dict[str, Any] | None = None,
     solver_branches: list[dict[str, Any]] | None = None,
     uncertainty: list[str] | None = None,
+    failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     overall = _derive_verdict(solver, baseline)
     tolerance = solver.get("tolerance")
@@ -76,6 +77,8 @@ def build_optimization_workflow_packet(
         packet["solver_branches"] = [
             _enrich_branch(b, baseline, tolerance) for b in solver_branches
         ]
+    if failure_labels is not None:
+        packet["failure_labels"] = list(failure_labels)
     return packet
 
 
