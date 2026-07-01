@@ -23,6 +23,7 @@ def build_visual_measurement_packet(
     scope: str,
     packet_id: str,
     display_caveats: list[str] | None = None,
+    calibration_boundary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     measurements: list[dict[str, Any]] = []
     per_metric: list[dict[str, Any]] = []
@@ -57,6 +58,9 @@ def build_visual_measurement_packet(
         "read_only": True,
         "measurements": measurements,
         "display_caveats": list(display_caveats or []),
+        "calibration_boundary": dict(calibration_boundary)
+        if calibration_boundary is not None
+        else {"hardware_measurement_used": False, "physical_calibration_claim": False},
         "verdicts": {"overall": overall, "per_metric": per_metric},
         "uncertainty": [],
         "decision_summary": derive_decision_summary(overall),
