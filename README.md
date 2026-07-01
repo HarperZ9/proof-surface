@@ -4,7 +4,7 @@
   <img src="docs/brand/proof-surface-hero.png" alt="Proof Surface, validate evidence packets and receipt contracts">
 </p>
 
-> Validate evidence packets, receipt contracts, gates, ledgers, and verdicts.
+> Validate evidence packets, receipt contracts, gates, ledgers, verdicts, and a family of domain proof-packet wedges.
 
 ## Try it
 
@@ -17,6 +17,8 @@ python -m pytest -q
 
 AI workflow records are only useful if another tool can validate their shape. Proof Surface defines small stdlib-only contracts for evidence packets, work receipts, gates, ledgers, delegation chains, and witness receipts so review tools can reject malformed or authority-shaped records.
 
+On top of that base sits a family of nine **domain proof-packet wedges**: each takes evidence a tool already produces (an agent trace, a color measurement, a benchmark attempt, a solver run, a scientific claim) and turns it into a validated, re-derivable packet that carries a `MATCH` / `DRIFT` / `UNVERIFIABLE` verdict and refuses to overclaim. Every wedge enforces a domain-specific honesty gate, and all nine reach a buyer through one seam: `telos-proof <domain>`.
+
 ## What to test first
 
 - Run the test suite and inspect which contract each validator covers.
@@ -26,7 +28,7 @@ AI workflow records are only useful if another tool can validate their shape. Pr
 ## Current status
 
 - **Runtime:** Python 3.11+; stdlib-only core.
-- **Surface:** Python API and contract-validator library for evidence packets, receipts, gates, ledgers, delegation chains, and witness receipts.
+- **Surface:** Python API and contract-validator library for evidence packets, receipts, gates, ledgers, delegation chains, and witness receipts, plus nine domain proof-packet wedges and incumbent trace/eval adapters, all routed through the `telos-proof` CLI.
 - **Verification:** the pytest suite is the conformance surface for the current contracts.
 - **Boundary:** Proof Surface validates records. It does not grant authority, execute actions, or store private payloads.
 
@@ -36,7 +38,7 @@ AI workflow records are only useful if another tool can validate their shape. Pr
 
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![python](https://img.shields.io/badge/python-3.11%2B-blue.svg)
-![version](https://img.shields.io/badge/version-0.1.0-informational.svg)
+![version](https://img.shields.io/badge/version-0.2.0-informational.svg)
 [![CI](https://github.com/HarperZ9/proof-surface/actions/workflows/ci.yml/badge.svg)](https://github.com/HarperZ9/proof-surface/actions/workflows/ci.yml)
 ![deps: none](https://img.shields.io/badge/deps-none-success.svg)
 [![part of: AI-accountability toolkit](https://img.shields.io/badge/part_of-AI--accountability_toolkit-7a5cff.svg)](https://harperz9.github.io)
@@ -64,6 +66,57 @@ ties RAW health receipts, EMET witness receipts, Sensorium provenance receipts,
 coherence observations, and proof-surface gate decisions together by digest,
 reference, advisory status, and edge relation; it does not embed heavy payloads
 or grant authority.
+
+## Proof-packet wedges
+
+Nine domain wedges turn evidence a tool already produces into a validated,
+re-derivable proof packet. Each wedge is a validator plus a builder, a
+reviewer-facing report, and a CLI; they share one spine (a crucible-faithful
+`MATCH` / `DRIFT` / `UNVERIFIABLE` verdict rule, a required decision summary, a
+non-promotion boundary, a content-addressed bundle, and the two neutrality
+guards) and one seam:
+
+```bash
+telos-proof <domain> --input run.json --claim "..." --scope "..." --out ./artifacts
+```
+
+| Wedge (`telos-proof <domain>`) | Turns this into a packet | Load-bearing honesty gate |
+| --- | --- | --- |
+| `agent-action` | an agent trace | admission / side-effects / evidence refs / typed failures / compute leases; the receipt id may not equal a span or trace id |
+| `visual-measurement` | a read-only color / display measurement | a read-only surface may not claim a physical display calibration without hardware and mutation evidence |
+| `research-claim` | a math / formal proof attempt | a PASSED kernel replay must disclose axioms, toolchain, and source; a single packet never reaches `PROMOTED_LAW` |
+| `model-eval` | a model + eval set + directional metrics | default-deny promotion: promote only when the overall verdict is `MATCH` |
+| `optimization-workflow` | a solver run vs an exact baseline | a non-executed branch claims no coverage; a penalty surrogate may not self-certify feasibility; fixture-match is not encoding-soundness |
+| `rollout-receipt` | an RL / post-training run | reward, verifier, admission, and promotion stay separate; promote only on a `MATCH` verifier and an `allow` admission |
+| `eval-attempt` | a single benchmark attempt | a `correct` outcome with ground-truth access is contamination, not a pass |
+| `ai4science` | a claim-to-experiment run | reject an unmeasured discovery claim; require independent reproduction; require human review before a peer-reviewed rung |
+| `conservation` | a transformation + a declared invariant | the check must carry a negative fixture that provably breaks the invariant: a verifier that cannot fail on a known-bad input is not a verifier |
+
+Every wedge is optional and zero-dependency, and treats crucible as an optional
+peer: it embeds a verdict by default and also emits a thesis plus measurements so
+an independent checker can re-derive that verdict from the same evidence.
+
+### Adapters: keep your stack, attach receipts
+
+`proof_surface.trace_adapters` wraps incumbent observability and eval systems as
+evidence inputs rather than replacing them. It normalizes OpenTelemetry and
+LangSmith / Langfuse run trees into the agent-action trace shape, and adds
+evidence importers for MLflow, Weights & Biases (artifacts and Weave), Braintrust,
+Arize Phoenix, promptfoo, Helicone, DVC, and SLSA / in-toto. Each importer
+preserves the tool's native references and declares, via `NON_INFERABLE`, the
+proof-layer fields the incumbent export cannot supply (authority receipts,
+workspace state, verification verdicts, decision). A coverage registry keeps that
+gap honest: every priority-tier incumbent must have a covering adapter.
+
+### The through-line: honesty gates
+
+The wedges were harvested from a long research program, and they converge on one
+idea. A proof packet is only worth more than a log if it can be *wrong* in a way a
+checker can catch. So every wedge carries an anti-overclaim gate: it names the
+specific way the claim could be inflated (a read-only tool claiming a hardware
+calibration, a benchmark that saw the answer, a solver that matched one fixture
+with an unsound encoding, a discovery with no measurement, an invariant check
+that cannot fail) and rejects the packet when that inflation is present.
 
 ## Design stance
 
