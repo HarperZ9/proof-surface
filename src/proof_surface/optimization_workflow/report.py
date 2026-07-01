@@ -78,10 +78,16 @@ def _render_branches(branches: Any) -> list[str]:
         runtime = f" [{b.get('runtime')}]" if b.get("runtime") else ""
         gap = b.get("gap")
         gap_txt = f", gap {gap}" if gap is not None else ""
+        enc = (
+            f", encoding {b.get('constraint_encoding')}"
+            if b.get("constraint_encoding")
+            else ""
+        )
+        blocked = " PROMOTION-BLOCKED" if b.get("promotion_blocked") else ""
         out.append(
             f"- `{b.get('branch_id')}` ({b.get('method')}){runtime} -- "
             f"{b.get('status')}; objective {b.get('objective_value')}{gap_txt}; "
-            f"vs baseline {b.get('baseline_match')}"
+            f"vs baseline {b.get('baseline_match')}{enc}{blocked}"
         )
     return out
 
