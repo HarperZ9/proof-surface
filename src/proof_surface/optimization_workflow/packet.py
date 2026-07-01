@@ -31,6 +31,19 @@ SENSES = {"maximize", "minimize"}
 SOLVER_METHODS = {"exact", "simulated", "hardware", "heuristic"}
 SOLVER_STATUSES = {"COMPLETED", "NOT_RUN", "FAILED"}
 CONSTRAINT_STATUSES = {"satisfied", "violated", "unknown"}
+# How each constraint was encoded for the solver (pass 0101 adapter requirement).
+CONSTRAINT_ENCODINGS = {
+    "exact",
+    "inequality_native",
+    "equality_native",
+    "slack_variable",
+    "penalty",
+    "equality_penalty",
+    "externally_enforced",
+}
+# Surrogate encodings that can present an infeasible optimum as solved: they may
+# not self-certify feasibility without an independent check (pass 0101).
+SURROGATE_ENCODINGS = {"penalty", "equality_penalty"}
 
 ROOT_FIELDS = {
     "version",
@@ -58,6 +71,7 @@ SOLVER_FIELDS = {
     "status",
     "objective_value",
     "constraint_status",
+    "constraint_encoding",
     "tolerance",
     "selected",
 }
@@ -220,8 +234,35 @@ def _validate_solver(value: Any, issues: list[Issue]) -> None:
     )
     _require_number(value.get("tolerance"), "$.solver.tolerance", issues, positive=True)
     _validate_objective_value(value, issues)
+    _validate_constraint_encoding(value, issues)
     if value.get("selected") is not None:
         _validate_str_list(value.get("selected"), "$.solver.selected", issues)
+
+
+def _validate_constraint_encoding(solver: dict[str, Any], issues: list[Issue]) -> None:
+    encoding = solver.get("constraint_encoding")
+    if encoding is None:
+        return
+    if encoding not in CONSTRAINT_ENCODINGS:
+        issues.append(
+            Issue(
+                "$.solver.constraint_encoding",
+                f"expected one of {sorted(CONSTRAINT_ENCODINGS)} or null",
+            )
+        )
+        return
+    if (
+        encoding in SURROGATE_ENCODINGS
+        and solver.get("constraint_status") == "satisfied"
+    ):
+        issues.append(
+            Issue(
+                "$.solver.constraint_encoding",
+                "a penalty/surrogate encoding may not self-certify constraint_status "
+                "'satisfied' (an equality penalty can present an infeasible optimum as "
+                "solved -- pass 0101); record 'unknown' unless feasibility was verified",
+            )
+        )
 
 
 def _validate_objective_value(solver: dict[str, Any], issues: list[Issue]) -> None:
