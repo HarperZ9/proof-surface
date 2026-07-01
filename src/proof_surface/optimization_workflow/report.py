@@ -74,10 +74,13 @@ def _render_branches(branches: Any) -> list[str]:
     for b in branches:
         if not isinstance(b, dict):
             continue
+        runtime = f" [{b.get('runtime')}]" if b.get("runtime") else ""
+        gap = b.get("gap")
+        gap_txt = f", gap {gap}" if gap is not None else ""
         out.append(
-            f"- `{b.get('branch_id')}` ({b.get('method')}) -- {b.get('status')}; "
-            f"objective {b.get('objective_value')}; vs baseline "
-            f"{b.get('baseline_match')}"
+            f"- `{b.get('branch_id')}` ({b.get('method')}){runtime} -- "
+            f"{b.get('status')}; objective {b.get('objective_value')}{gap_txt}; "
+            f"vs baseline {b.get('baseline_match')}"
         )
     return out
 

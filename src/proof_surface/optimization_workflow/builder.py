@@ -13,7 +13,7 @@ from typing import Any
 
 from .._decision import derive_decision_summary
 from .._verdict import verdict_for_measurement
-from ._branches import derive_baseline_match
+from ._branches import derive_baseline_match, derive_gap
 from .packet import PACKET_VERSION
 
 
@@ -74,10 +74,22 @@ def build_optimization_workflow_packet(
     }
     if solver_branches is not None:
         packet["solver_branches"] = [
-            {**dict(b), "baseline_match": derive_baseline_match(b, baseline, tolerance)}
-            for b in solver_branches
+            _enrich_branch(b, baseline, tolerance) for b in solver_branches
         ]
     return packet
+
+
+def _enrich_branch(
+    branch: dict[str, Any], baseline: dict[str, Any], tolerance: Any
+) -> dict[str, Any]:
+    enriched = {
+        **dict(branch),
+        "baseline_match": derive_baseline_match(branch, baseline, tolerance),
+    }
+    gap = derive_gap(branch, baseline)
+    if gap is not None:
+        enriched["gap"] = gap
+    return enriched
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
