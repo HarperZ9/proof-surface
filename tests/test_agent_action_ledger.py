@@ -13,7 +13,12 @@ from proof_surface.agent_action import ledger
 
 
 def _rec(action_id, **extra):
-    return {"packet_id": "pkt-1", "action_id": action_id, "idempotency_key": "k-" + action_id, **extra}
+    return {
+        "packet_id": "pkt-1",
+        "action_id": action_id,
+        "idempotency_key": "k-" + action_id,
+        **extra,
+    }
 
 
 def test_append_then_read_verifies_clean(tmp_path):
@@ -77,6 +82,8 @@ def test_lookup_by_action_and_idempotency_key(tmp_path):
     ledger.append_event(path, _rec("s1"))
     ledger.append_event(path, _rec("s2"))
     events = ledger.read_events(path)
-    assert [e["record"]["action_id"] for e in ledger.lookup(events, action_id="s2")] == ["s2"]
+    assert [
+        e["record"]["action_id"] for e in ledger.lookup(events, action_id="s2")
+    ] == ["s2"]
     assert len(ledger.lookup(events, idempotency_key="k-s1")) == 1
     assert len(ledger.lookup(events, packet_id="pkt-1")) == 2
