@@ -18,6 +18,7 @@ _DOMAINS = {
     "visual-measurement": "proof_surface.visual_measurement.cli",
     "research-claim": "proof_surface.research_claim.cli",
     "model-eval": "proof_surface.model_eval.cli",
+    "rollout-receipt": "proof_surface.rollout_receipt.cli",
 }
 
 
