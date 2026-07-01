@@ -52,12 +52,23 @@ ROOT_FIELDS = {
     "promotion",
     "uncertainty",
     "decision_summary",
+    "formal",
 }
 SOURCE_FIELDS = {"ref", "sha256", "url"}
 ATTEMPT_FIELDS = {"attempt_id", "method", "result", "artifact_ref", "notes"}
 CHECK_FIELDS = {"checker", "status", "evidence", "notes"}
 VERDICTS_FIELDS = {"overall", "per_check"}
 PER_CHECK_FIELDS = {"checker", "status"}
+REPLAY_STATUSES = {"NOT_RUN", "BLOCKED", "PASSED", "FAILED"}
+FORMAL_FIELDS = {
+    "kernel_checked",
+    "compiled_replay_status",
+    "axioms",
+    "toolchain",
+    "source_sha256",
+    "unresolved_sorry",
+    "counterexample_found",
+}
 
 _HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 
@@ -86,6 +97,7 @@ def validate_research_claim_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_verdicts(data.get("verdicts"), issues)
     require_enum(data, "promotion", PROMOTIONS, issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)
+    _validate_formal(data.get("formal"), issues)
     _validate_consistency(data, issues)
     validate_decision_summary(
         data.get("decision_summary"), issues, "$.decision_summary"
@@ -176,6 +188,48 @@ def _validate_verdicts(value: Any, issues: list[Issue]) -> None:
         reject_unknown(item, path, PER_CHECK_FIELDS, issues)
         require_text(item, "checker", issues, f"{path}.checker")
         require_enum(item, "status", OVERALL_VERDICTS, issues, f"{path}.status")
+
+
+def _validate_formal(value: Any, issues: list[Issue]) -> None:
+    """A PASSED kernel replay must disclose its axioms, toolchain, and source binding."""
+    if value is None:
+        return
+    if not isinstance(value, dict):
+        issues.append(Issue("$.formal", "expected object"))
+        return
+    reject_unknown(value, "$.formal", FORMAL_FIELDS, issues)
+    if not isinstance(value.get("kernel_checked"), bool):
+        issues.append(Issue("$.formal.kernel_checked", "expected boolean"))
+    require_enum(
+        value,
+        "compiled_replay_status",
+        REPLAY_STATUSES,
+        issues,
+        "$.formal.compiled_replay_status",
+    )
+    axioms = value.get("axioms", [])
+    if not isinstance(axioms, list) or any(
+        not isinstance(a, str) or not a.strip() for a in axioms
+    ):
+        issues.append(Issue("$.formal.axioms", "expected array of non-empty strings"))
+    sha = value.get("source_sha256")
+    if sha is not None and (not isinstance(sha, str) or not _HEX64.fullmatch(sha)):
+        issues.append(
+            Issue(
+                "$.formal.source_sha256",
+                "expected 64-char lowercase hex digest or null",
+            )
+        )
+    if value.get("compiled_replay_status") == "PASSED" and not (
+        value.get("kernel_checked") and axioms and value.get("toolchain") and sha
+    ):
+        issues.append(
+            Issue(
+                "$.formal",
+                "a PASSED kernel replay must disclose kernel_checked, a non-empty axiom "
+                "set, toolchain, and source_sha256",
+            )
+        )
 
 
 def _validate_str_list(value: Any, path: str, issues: list[Issue]) -> None:
