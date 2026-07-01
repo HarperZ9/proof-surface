@@ -44,7 +44,8 @@ def render_report(packet: dict[str, Any]) -> str:
             f"- `{solver.get('branch_id')}` ({solver.get('method')}) -- "
             f"status {solver.get('status')}",
             f"- objective {solver.get('objective_value')}; "
-            f"constraints {solver.get('constraint_status')}; "
+            f"constraints {solver.get('constraint_status')}"
+            f" ({solver.get('constraint_encoding') or 'unspecified'} encoding); "
             f"tolerance {solver.get('tolerance')}",
             f"- selected: {', '.join(solver.get('selected') or []) or '_none_'}",
             "",
