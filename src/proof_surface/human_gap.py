@@ -46,9 +46,14 @@ def validate_human_gap(value: Any, issues: list[Issue]) -> None:
         digest = value["evidence_digest"]
         if not isinstance(digest, str) or not _HEX64_RE.match(digest):
             issues.append(
-                Issue("$.human_gap.evidence_digest", "expected 64-char lowercase hex digest")
+                Issue(
+                    "$.human_gap.evidence_digest",
+                    "expected 64-char lowercase hex digest",
+                )
             )
-    if "operator_attested" in value and not isinstance(value["operator_attested"], bool):
+    if "operator_attested" in value and not isinstance(
+        value["operator_attested"], bool
+    ):
         issues.append(Issue("$.human_gap.operator_attested", "expected boolean"))
 
 

@@ -7,7 +7,9 @@ CONF = Path(__file__).resolve().parents[1] / "conformance" / "witness-receipt" /
 
 
 def _valid() -> dict:
-    return json.loads((CONF / "valid" / "minimal.receipt.json").read_text(encoding="utf-8"))
+    return json.loads(
+        (CONF / "valid" / "minimal.receipt.json").read_text(encoding="utf-8")
+    )
 
 
 def test_valid_receipt_passes():
@@ -23,13 +25,17 @@ def test_forbidden_verdict_rejected():
 def test_authority_token_in_notes_rejected():
     data = _valid()
     data["notes"] = "This artifact is APPROVED for release."
-    assert any("authority token" in issue.message for issue in validate_witness_receipt(data))
+    assert any(
+        "authority token" in issue.message for issue in validate_witness_receipt(data)
+    )
 
 
 def test_bad_subject_sha_rejected():
     data = _valid()
     data["subject"][0]["digest"]["sha256"] = "nope"
-    assert any(issue.path.endswith("sha256") for issue in validate_witness_receipt(data))
+    assert any(
+        issue.path.endswith("sha256") for issue in validate_witness_receipt(data)
+    )
 
 
 def test_unknown_root_field_rejected():
@@ -70,7 +76,9 @@ def test_emet_superset_tokens_rejected():
     for tok in ("BLESSED", "VERIFIED_AUTHORITY"):
         data = _valid()
         data["notes"] = f"this artifact is {tok}"
-        assert any("authority token" in i.message for i in validate_witness_receipt(data)), tok
+        assert any(
+            "authority token" in i.message for i in validate_witness_receipt(data)
+        ), tok
 
 
 def test_authority_token_as_dict_key_rejected():

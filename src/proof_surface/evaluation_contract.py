@@ -175,11 +175,15 @@ def evaluate(contract: dict[str, Any], results: list[dict[str, Any]]) -> EvalDec
         except (TypeError, ValueError):
             per_criterion[name] = "missing"
             if required:
-                reasons.append(f"required criterion {name!r} has non-numeric measured value")
+                reasons.append(
+                    f"required criterion {name!r} has non-numeric measured value"
+                )
             continue
 
         try:
-            uncertainty_f = float(uncertainty_raw) if uncertainty_raw is not None else 0.0
+            uncertainty_f = (
+                float(uncertainty_raw) if uncertainty_raw is not None else 0.0
+            )
         except (TypeError, ValueError):
             uncertainty_f = 0.0
         if uncertainty_f < 0:

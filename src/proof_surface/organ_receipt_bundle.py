@@ -127,14 +127,18 @@ def _validate_entries(value: Any, issues: list[Issue]) -> set[str]:
         reject_unknown(item, path, ENTRY_FIELDS, issues)
         require_text(item, "entry_id", issues, f"{path}.entry_id")
         require_text(item, "organ_id", issues, f"{path}.organ_id")
-        require_enum(item, "receipt_kind", RECEIPT_KINDS, issues, f"{path}.receipt_kind")
+        require_enum(
+            item, "receipt_kind", RECEIPT_KINDS, issues, f"{path}.receipt_kind"
+        )
         require_enum(item, "status", ENTRY_STATUSES, issues, f"{path}.status")
         require_text(item, "summary", issues, f"{path}.summary")
         if "payload_ref" in item:
             require_text(item, "payload_ref", issues, f"{path}.payload_ref")
         digest = item.get("payload_sha256")
         if not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest):
-            issues.append(Issue(f"{path}.payload_sha256", "expected 64-char lowercase hex sha256"))
+            issues.append(
+                Issue(f"{path}.payload_sha256", "expected 64-char lowercase hex sha256")
+            )
         entry_id = item.get("entry_id")
         if isinstance(entry_id, str) and entry_id.strip():
             if entry_id in entry_ids:

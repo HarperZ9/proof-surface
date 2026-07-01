@@ -162,7 +162,10 @@ def check_action(
     allowed_targets: list[str] = scope.get("allowed_targets", [])
 
     if not allowed_actions:
-        return Issue("$.scope.allowed_actions", "action denied: scope allows no actions (default-deny)")
+        return Issue(
+            "$.scope.allowed_actions",
+            "action denied: scope allows no actions (default-deny)",
+        )
     if action_kind not in allowed_actions:
         return Issue(
             "$.scope.allowed_actions",
@@ -202,10 +205,17 @@ def _validate_principal(value: Any, issues: list[Issue]) -> None:
     reject_unknown(value, "$.principal", PRINCIPAL_FIELDS, issues)
     pid = value.get("id")
     if not isinstance(pid, str) or not pid.strip():
-        issues.append(Issue("$.principal.id", "expected non-empty string (a real human/account identifier)"))
+        issues.append(
+            Issue(
+                "$.principal.id",
+                "expected non-empty string (a real human/account identifier)",
+            )
+        )
     role = value.get("role")
     if role is not None and (not isinstance(role, str) or not role.strip()):
-        issues.append(Issue("$.principal.role", "expected non-empty string when present"))
+        issues.append(
+            Issue("$.principal.role", "expected non-empty string when present")
+        )
 
 
 def _validate_agent(value: Any, issues: list[Issue]) -> None:
@@ -226,11 +236,18 @@ def _validate_scope(value: Any, issues: list[Issue]) -> None:
     # allowed_actions: required array of strings (may be empty = nothing allowed).
     actions = value.get("allowed_actions")
     if not isinstance(actions, list):
-        issues.append(Issue("$.scope.allowed_actions", "expected array (may be empty -- empty means nothing allowed)"))
+        issues.append(
+            Issue(
+                "$.scope.allowed_actions",
+                "expected array (may be empty -- empty means nothing allowed)",
+            )
+        )
     else:
         for i, item in enumerate(actions):
             if not isinstance(item, str) or not item.strip():
-                issues.append(Issue(f"$.scope.allowed_actions[{i}]", "expected non-empty string"))
+                issues.append(
+                    Issue(f"$.scope.allowed_actions[{i}]", "expected non-empty string")
+                )
     # allowed_targets: required array of strings (may be empty = any target).
     targets = value.get("allowed_targets")
     if not isinstance(targets, list):
@@ -238,18 +255,29 @@ def _validate_scope(value: Any, issues: list[Issue]) -> None:
     else:
         for i, item in enumerate(targets):
             if not isinstance(item, str) or not item.strip():
-                issues.append(Issue(f"$.scope.allowed_targets[{i}]", "expected non-empty string"))
+                issues.append(
+                    Issue(f"$.scope.allowed_targets[{i}]", "expected non-empty string")
+                )
     # max_actions: optional non-negative integer.
     max_actions = value.get("max_actions")
     if max_actions is not None:
-        if isinstance(max_actions, bool) or not isinstance(max_actions, int) or max_actions < 0:
+        if (
+            isinstance(max_actions, bool)
+            or not isinstance(max_actions, int)
+            or max_actions < 0
+        ):
             issues.append(Issue("$.scope.max_actions", "expected non-negative integer"))
 
 
 def _validate_timestamp(data: dict[str, Any], field: str, issues: list[Issue]) -> None:
     value = data.get(field)
     if not isinstance(value, str) or not _ISO8601_RE.match(value):
-        issues.append(Issue(f"$.{field}", "expected ISO-8601 datetime string with timezone (authority must expire)"))
+        issues.append(
+            Issue(
+                f"$.{field}",
+                "expected ISO-8601 datetime string with timezone (authority must expire)",
+            )
+        )
 
 
 def _validate_timestamp_ordering(data: dict[str, Any], issues: list[Issue]) -> None:

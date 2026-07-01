@@ -30,10 +30,7 @@ from proof_surface.evaluation_contract import (
 )
 
 CONF = (
-    Path(__file__).resolve().parents[1]
-    / "conformance"
-    / "evaluation-contract"
-    / "v0.1"
+    Path(__file__).resolve().parents[1] / "conformance" / "evaluation-contract" / "v0.1"
 )
 
 
@@ -96,13 +93,14 @@ def test_forbidden_field_rejected_at_root():
 
 def test_every_prefire_key_is_forbidden_at_root():
     from proof_surface.evaluation_contract import FORBIDDEN_FIELDS
+
     for key in FORBIDDEN_FIELDS:
         data = _minimal_contract()
         data[key] = "x"
         issues = validate_evaluation_contract(data)
-        assert any(
-            i.path == f"$.{key}" and "forbidden" in i.message for i in issues
-        ), f"key {key!r} not blocked at root"
+        assert any(i.path == f"$.{key}" and "forbidden" in i.message for i in issues), (
+            f"key {key!r} not blocked at root"
+        )
 
 
 def test_forbidden_field_rejected_when_nested_in_criterion():
@@ -328,8 +326,8 @@ def test_evaluate_block_takes_precedence_over_uncertain():
         ]
     )
     results = [
-        _result("accuracy", 80.0),          # fail (no uncertainty)
-        _result("latency", 490.0, 20.0),    # uncertain: [470, 510] straddles 500
+        _result("accuracy", 80.0),  # fail (no uncertainty)
+        _result("latency", 490.0, 20.0),  # uncertain: [470, 510] straddles 500
     ]
     decision = evaluate(contract, results)
     assert decision.decision == "block"
@@ -503,8 +501,15 @@ def test_evaluate_blocks_unknown_direction():
     # A tampered direction must be rejected (validate-first), never silently
     # treated as "<=".
     contract = _minimal_contract(
-        criteria=[{"name": "x", "metric": "m", "threshold": 1.0,
-                   "direction": "SKIP", "required": True}]
+        criteria=[
+            {
+                "name": "x",
+                "metric": "m",
+                "threshold": 1.0,
+                "direction": "SKIP",
+                "required": True,
+            }
+        ]
     )
     decision = evaluate(contract, [_result("x", 5.0)])
     assert decision.decision == "block"
@@ -512,6 +517,7 @@ def test_evaluate_blocks_unknown_direction():
 
 def test_compare_unknown_direction_fails_closed():
     from proof_surface.evaluation_contract import _compare
+
     assert _compare(5.0, 0.0, 1.0, "SKIP") == "fail"
 
 

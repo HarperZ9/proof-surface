@@ -7,7 +7,9 @@ import pytest
 
 from proof_surface import validate_organ_receipt_bundle
 
-SCHEMA = Path(__file__).resolve().parents[1] / "schemas" / "organ-receipt-bundle.schema.json"
+SCHEMA = (
+    Path(__file__).resolve().parents[1] / "schemas" / "organ-receipt-bundle.schema.json"
+)
 
 
 def _entry(
