@@ -12,6 +12,7 @@ from typing import Any
 
 from .._decision import derive_decision_summary
 from .._verdict import combine_overall, verdict_for_measurement
+from ._refutation import has_standing_counterexample
 from .packet import PACKET_VERSION
 
 _TOLERANCE = 0.5
@@ -57,8 +58,15 @@ def build_research_claim_packet(
         norm_checks.append(entry)
 
     overall = combine_overall(statuses)
+    # A standing counterexample outranks any fixture-level pass: the derived
+    # rung is REFUTED, never a positive promotion.
+    standing = has_standing_counterexample(
+        {"attempts": attempts, "formal": formal or {}}
+    )
     resolved_promotion = promotion or (
-        "CRUCIBLE_MATCH" if overall == "MATCH" else "UNVERIFIABLE"
+        "REFUTED"
+        if standing
+        else ("CRUCIBLE_MATCH" if overall == "MATCH" else "UNVERIFIABLE")
     )
 
     packet = {

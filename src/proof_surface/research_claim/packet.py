@@ -23,6 +23,7 @@ from .._failure import validate_failure_labels
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
+from ._refutation import validate_refutation_gate
 
 PACKET_VERSION = "research-claim-proof-packet/v0"
 
@@ -38,6 +39,7 @@ PROMOTIONS = {
     "CRUCIBLE_MATCH",
     "UNVERIFIABLE",
     "LAW_CANDIDATE",
+    "REFUTED",
 }
 
 ROOT_FIELDS = {
@@ -110,6 +112,7 @@ def validate_research_claim_packet(data: dict[str, Any]) -> list[Issue]:
     require_enum(data, "promotion", PROMOTIONS, issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)
     _validate_formal(data.get("formal"), issues)
+    validate_refutation_gate(data, issues)
     _validate_consistency(data, issues)
     validate_failure_labels(data.get("failure_labels"), issues)
     validate_decision_summary(
