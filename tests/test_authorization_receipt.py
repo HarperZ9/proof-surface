@@ -22,7 +22,12 @@ from pathlib import Path
 from proof_surface import authorization_receipt as ar
 from proof_surface import validate_authorization_receipt
 
-CONF = Path(__file__).resolve().parents[1] / "conformance" / "authorization-receipt" / "v0.1"
+CONF = (
+    Path(__file__).resolve().parents[1]
+    / "conformance"
+    / "authorization-receipt"
+    / "v0.1"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -31,7 +36,9 @@ CONF = Path(__file__).resolve().parents[1] / "conformance" / "authorization-rece
 
 
 def _valid() -> dict:
-    return json.loads((CONF / "valid" / "minimal.receipt.json").read_text(encoding="utf-8"))
+    return json.loads(
+        (CONF / "valid" / "minimal.receipt.json").read_text(encoding="utf-8")
+    )
 
 
 def _now_str(offset_seconds: int = 0) -> str:
@@ -91,9 +98,9 @@ def test_every_prefire_key_is_forbidden():
         data = _valid()
         data[key] = "x"
         issues = validate_authorization_receipt(data)
-        assert any(
-            i.path == f"$.{key}" and "forbidden" in i.message for i in issues
-        ), f"key {key!r} not blocked"
+        assert any(i.path == f"$.{key}" and "forbidden" in i.message for i in issues), (
+            f"key {key!r} not blocked"
+        )
 
 
 def test_forbidden_field_rejected_when_nested_in_scope():
@@ -110,9 +117,7 @@ def test_forbidden_field_rejected_when_nested_in_principal():
     data = _valid()
     data["principal"]["prefire"] = True
     issues = validate_authorization_receipt(data)
-    assert any(
-        i.path.endswith("prefire") and "forbidden" in i.message for i in issues
-    )
+    assert any(i.path.endswith("prefire") and "forbidden" in i.message for i in issues)
 
 
 # ---------------------------------------------------------------------------
@@ -296,13 +301,19 @@ def test_check_action_out_of_scope_denied():
 
 
 def test_check_action_target_restricted_allowed():
-    receipt = _receipt(actions=["read_file"], targets=["C:/dev/public/proof-surface/conformance/"])
-    result = ar.check_action(receipt, "read_file", "C:/dev/public/proof-surface/conformance/")
+    receipt = _receipt(
+        actions=["read_file"], targets=["C:/dev/public/proof-surface/conformance/"]
+    )
+    result = ar.check_action(
+        receipt, "read_file", "C:/dev/public/proof-surface/conformance/"
+    )
     assert result is None
 
 
 def test_check_action_target_restricted_denied():
-    receipt = _receipt(actions=["read_file"], targets=["C:/dev/public/proof-surface/conformance/"])
+    receipt = _receipt(
+        actions=["read_file"], targets=["C:/dev/public/proof-surface/conformance/"]
+    )
     result = ar.check_action(receipt, "read_file", "C:/dev/secret/")
     assert result is not None
     assert "not in allowed_targets" in result.message

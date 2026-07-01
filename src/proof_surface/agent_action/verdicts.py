@@ -96,7 +96,10 @@ def attach_verdicts(packet: dict[str, Any]) -> dict[str, Any]:
         per_action.append({"action_id": action.get("action_id"), "status": status})
 
     result = dict(packet)
-    result["verdicts"] = {"overall": combine_overall(statuses), "per_action": per_action}
+    result["verdicts"] = {
+        "overall": combine_overall(statuses),
+        "per_action": per_action,
+    }
     return result
 
 

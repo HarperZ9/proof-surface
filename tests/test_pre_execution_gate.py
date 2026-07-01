@@ -24,7 +24,9 @@ from pathlib import Path
 from proof_surface import GateDecision, evaluate_gate, validate_gate_request
 from proof_surface import pre_execution_gate as peg
 
-CONF = Path(__file__).resolve().parents[1] / "conformance" / "pre-execution-gate" / "v0.1"
+CONF = (
+    Path(__file__).resolve().parents[1] / "conformance" / "pre-execution-gate" / "v0.1"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -79,9 +81,9 @@ def _valid_request(
             "action_kind": action_kind,
             "target": target,
         },
-        "authorization": receipt if receipt is not None else _valid_receipt(
-            actions=[action_kind], targets=[]
-        ),
+        "authorization": receipt
+        if receipt is not None
+        else _valid_receipt(actions=[action_kind], targets=[]),
         "budget": budget if budget is not None else {},
     }
     if estimated_cost is not None:
@@ -123,14 +125,16 @@ def test_every_prefire_key_is_forbidden_at_root():
         req = _valid_request()
         req[key] = "x"
         issues = validate_gate_request(req)
-        assert any(
-            i.path == f"$.{key}" and "forbidden" in i.message for i in issues
-        ), f"key {key!r} not blocked at root"
+        assert any(i.path == f"$.{key}" and "forbidden" in i.message for i in issues), (
+            f"key {key!r} not blocked at root"
+        )
 
 
 def test_forbidden_field_nested_in_authorization_rejected():
     req = _valid_request()
-    req["authorization"]["scope"]["authorization_context_mode"] = "consume_verified_native_state"
+    req["authorization"]["scope"]["authorization_context_mode"] = (
+        "consume_verified_native_state"
+    )
     issues = validate_gate_request(req)
     assert any(
         i.path.endswith("authorization_context_mode") and "forbidden" in i.message
@@ -142,9 +146,7 @@ def test_forbidden_field_nested_in_planned_action_rejected():
     req = _valid_request()
     req["planned_action"]["prefire"] = True
     issues = validate_gate_request(req)
-    assert any(
-        i.path.endswith("prefire") and "forbidden" in i.message for i in issues
-    )
+    assert any(i.path.endswith("prefire") and "forbidden" in i.message for i in issues)
 
 
 def test_forbidden_field_nested_in_budget_rejected():
@@ -586,7 +588,9 @@ def test_deny_beats_unknown_when_state_drifts_and_budget_unknown():
 
 def test_invalid_shape_causes_deny():
     """A structurally invalid request (not even a dict) must deny."""
-    decision = evaluate_gate({"planned_action": None, "authorization": {}, "budget": {}})
+    decision = evaluate_gate(
+        {"planned_action": None, "authorization": {}, "budget": {}}
+    )
     assert decision.decision == peg.DENY
     assert decision.checks["authorization"] == peg.FAIL
 
@@ -644,9 +648,7 @@ def test_conformance_fixtures_match_manifest():
         data = json.loads((CONF / fixture["path"]).read_text(encoding="utf-8"))
         issues = validate_gate_request(data)
         if fixture["expected"] == "valid":
-            assert issues == [], (
-                f"{fixture['path']} should be valid but got: {issues}"
-            )
+            assert issues == [], f"{fixture['path']} should be valid but got: {issues}"
         else:
             assert issues, (
                 f"{fixture['path']} should be invalid but validate_gate_request returned no issues"

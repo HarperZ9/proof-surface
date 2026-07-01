@@ -28,13 +28,29 @@ def _load_json(path: str) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+def _normalize_trace(raw: Any, trace_format: str) -> Any:
+    if trace_format == "otel":
+        from ..trace_adapters import normalize_otel
+
+        return normalize_otel(raw)
+    if trace_format == "langsmith":
+        from ..trace_adapters import normalize_run_tree
+
+        return normalize_run_tree(raw)
+    return raw
+
+
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="telos proof agent-action",
         description="Turn an agent execution trace into a portable, re-checkable proof packet.",
     )
+    p.add_argument("--trace", required=True, help="path to a trace export JSON")
     p.add_argument(
-        "--trace", required=True, help="path to a normalized (OTel-shaped) trace JSON"
+        "--trace-format",
+        choices=("normalized", "otel", "langsmith"),
+        default="normalized",
+        help="trace input format: normalized (default), otel (OTLP/JSON), or langsmith (run tree)",
     )
     p.add_argument(
         "--authorization",
@@ -56,11 +72,13 @@ def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
 
     try:
-        trace = _load_json(args.trace)
+        raw_trace = _load_json(args.trace)
         authorization = _load_json(args.authorization)
     except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"error: could not read input: {exc}", file=sys.stderr)
         return 2
+
+    trace = _normalize_trace(raw_trace, args.trace_format)
 
     packet = attach_verdicts(
         build_agent_action_packet(
