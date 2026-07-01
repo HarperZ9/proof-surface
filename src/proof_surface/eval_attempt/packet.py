@@ -19,7 +19,7 @@ from .._decision import validate_decision_summary
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
-from ._integrity import validate_integrity
+from ._integrity import validate_auditability, validate_integrity
 
 PACKET_VERSION = "eval-attempt-proof-packet/v0"
 
@@ -52,7 +52,8 @@ ATTEMPT_FIELDS = {
 }
 TOOL_USE_FIELDS = {"tool", "ref"}
 RESULT_FIELDS = {"outcome", "score", "expected_ref"}
-BOUNDARIES_FIELDS = {"had_ground_truth", "had_internet", "had_tools"}
+REQUIRED_BOUNDARY_FLAGS = ("had_ground_truth", "had_internet", "had_tools")
+BOUNDARIES_FIELDS = {*REQUIRED_BOUNDARY_FLAGS, "reasoning_trace_available"}
 VERDICTS_FIELDS = {"overall"}
 
 _HEX64 = re.compile(r"[0-9a-f]{64}\Z")
@@ -81,6 +82,13 @@ def validate_eval_attempt_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_result(data.get("result"), issues)
     _validate_boundaries(data.get("boundaries"), issues)
     validate_integrity(data.get("result"), data.get("boundaries"), issues)
+    validate_auditability(
+        data.get("result"),
+        data.get("boundaries"),
+        data.get("attempt"),
+        data.get("verdicts"),
+        issues,
+    )
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)
     validate_decision_summary(
@@ -190,9 +198,14 @@ def _validate_boundaries(value: Any, issues: list[Issue]) -> None:
         issues.append(Issue("$.boundaries", "expected object"))
         return
     reject_unknown(value, "$.boundaries", BOUNDARIES_FIELDS, issues)
-    for field in BOUNDARIES_FIELDS:
+    for field in REQUIRED_BOUNDARY_FLAGS:
         if not isinstance(value.get(field), bool):
             issues.append(Issue(f"$.boundaries.{field}", "expected boolean"))
+    trace = value.get("reasoning_trace_available")
+    if trace is not None and not isinstance(trace, bool):
+        issues.append(
+            Issue("$.boundaries.reasoning_trace_available", "expected boolean or null")
+        )
 
 
 def _validate_verdicts(value: Any, issues: list[Issue]) -> None:
