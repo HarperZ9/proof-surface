@@ -116,11 +116,18 @@ def _render_side_effect(entry: dict[str, Any]) -> str:
     comp_txt = "reversible" if reversible else "irreversible"
     if reversible and rollback:
         comp_txt += f" (rollback `{rollback}`)"
-    return (
+    line = (
         f"- **Side effect:** {entry.get('class')}; "
         f"idempotency {_short(entry.get('idempotency_key'))}; {comp_txt}; "
         f"{_short(entry.get('before_digest'))} -> {_short(entry.get('after_digest'))}"
     )
+    lease = entry.get("compute_lease")
+    if isinstance(lease, dict):
+        line += (
+            f"; compute-lease `{lease.get('queue_id')}` "
+            f"(budget `{lease.get('budget_ref')}`, {lease.get('terminal_status')})"
+        )
+    return line
 
 
 def _render_outputs(outputs: Any) -> list[str]:
