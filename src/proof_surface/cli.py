@@ -19,6 +19,7 @@ _DOMAINS = {
     "research-claim": "proof_surface.research_claim.cli",
     "model-eval": "proof_surface.model_eval.cli",
     "optimization-workflow": "proof_surface.optimization_workflow.cli",
+    "rollout-receipt": "proof_surface.rollout_receipt.cli",
 }
 
 

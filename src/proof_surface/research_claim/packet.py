@@ -54,7 +54,17 @@ ROOT_FIELDS = {
     "decision_summary",
     "formal",
 }
-SOURCE_FIELDS = {"ref", "sha256", "url"}
+SOURCE_FIELDS = {"ref", "sha256", "url", "availability"}
+# Honest retrievability (research/mycology-network-intelligence.md provenance
+# boundary): record what could lawfully be obtained, never pretend a paywalled
+# or unretrievable source was read.
+SOURCE_AVAILABILITY = {
+    "open",
+    "abstract-only",
+    "publisher-blocked",
+    "author-copy",
+    "unverifiable-from-local-corpus",
+}
 ATTEMPT_FIELDS = {"attempt_id", "method", "result", "artifact_ref", "notes"}
 CHECK_FIELDS = {"checker", "status", "evidence", "notes"}
 VERDICTS_FIELDS = {"overall", "per_check"}
@@ -143,6 +153,14 @@ def _validate_sources(value: Any, issues: list[Issue]) -> None:
                 Issue(f"{path}.sha256", "expected 64-char lowercase hex digest or null")
             )
         _require_opt_text(item.get("url"), f"{path}.url", issues)
+        availability = item.get("availability")
+        if availability is not None and availability not in SOURCE_AVAILABILITY:
+            issues.append(
+                Issue(
+                    f"{path}.availability",
+                    f"expected one of {sorted(SOURCE_AVAILABILITY)} or null",
+                )
+            )
 
 
 def _validate_attempts(value: Any, issues: list[Issue]) -> None:
