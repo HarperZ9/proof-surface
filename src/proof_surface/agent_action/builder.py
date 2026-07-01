@@ -28,6 +28,7 @@ def build_agent_action_packet(
     scope: str,
     packet_id: str,
     evidence_refs: dict[str, Any] | None = None,
+    failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     imported = import_trace(trace)
     auth_ref = authorization.get("receipt_id", "")
@@ -70,6 +71,8 @@ def build_agent_action_packet(
         packet["evidence_refs"] = {
             key: list(value) for key, value in evidence_refs.items()
         }
+    if failure_labels is not None:
+        packet["failure_labels"] = list(failure_labels)
     return packet
 
 
