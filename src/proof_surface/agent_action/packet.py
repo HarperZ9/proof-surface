@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from .._decision import validate_decision_summary
+from .._failure import validate_failure_labels
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 
 # Reuse the family's two neutrality guards verbatim -- one source of truth, so
@@ -47,6 +48,7 @@ ROOT_FIELDS = {
     "side_effects",
     "outputs",
     "evidence_refs",
+    "failure_labels",
     "verdicts",
     "uncertainty",
     "decision_summary",
@@ -106,6 +108,7 @@ def validate_agent_action_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_side_effects(data.get("side_effects"), issues)
     _validate_outputs(data.get("outputs"), issues)
     validate_evidence_refs(data.get("evidence_refs"), issues)
+    validate_failure_labels(data.get("failure_labels"), issues)
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_uncertainty(data.get("uncertainty"), issues)
     validate_consistency(data, issues)

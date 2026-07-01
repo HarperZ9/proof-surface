@@ -58,6 +58,7 @@ def render_report(packet: dict[str, Any]) -> str:
     lines.extend(_render_actions(packet))
     lines.extend(_render_outputs(packet.get("outputs")))
     lines.extend(_render_evidence_refs(packet.get("evidence_refs")))
+    lines.extend(_render_failure_labels(packet.get("failure_labels")))
     lines.extend(_render_list("Uncertainty", packet.get("uncertainty")))
     lines.append("")
     lines.append(
@@ -156,6 +157,13 @@ def _render_evidence_refs(evidence_refs: Any) -> list[str]:
         out.append(f"- **{bucket}:** {refs}")
     out.append("")
     return out
+
+
+def _render_failure_labels(labels: Any) -> list[str]:
+    if not isinstance(labels, list) or not labels:
+        return []
+    codes = ", ".join(f"`{code}`" for code in labels)
+    return ["## Typed failures", "", f"- {codes}", ""]
 
 
 def _render_list(title: str, items: Any) -> list[str]:
