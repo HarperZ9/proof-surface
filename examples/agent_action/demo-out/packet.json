@@ -1,8 +1,8 @@
 {
   "version": "agent-action-proof-packet/v0",
-  "packet_id": "demo-write",
-  "claim": "The agent wrote /work/config.json under grant grant-fs-write-work; the write was admitted and verified.",
-  "scope": "One filesystem write under /work; the plan step is read-only; network excluded.",
+  "packet_id": "reverify",
+  "claim": "verify",
+  "scope": "verify",
   "sources": [
     {
       "ref": "trace:trace-demo-write",
