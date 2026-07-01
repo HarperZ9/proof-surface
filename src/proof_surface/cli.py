@@ -17,6 +17,7 @@ _DOMAINS = {
     "agent-action": "proof_surface.agent_action.cli",
     "visual-measurement": "proof_surface.visual_measurement.cli",
     "research-claim": "proof_surface.research_claim.cli",
+    "model-eval": "proof_surface.model_eval.cli",
 }
 
 

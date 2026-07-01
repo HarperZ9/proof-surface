@@ -34,6 +34,7 @@ telos-proof = "proof_surface.cli:main"
 proof-surface-agent-action = "proof_surface.agent_action.cli:main"
 proof-surface-visual-measurement = "proof_surface.visual_measurement.cli:main"
 proof-surface-research-claim = "proof_surface.research_claim.cli:main"
+proof-surface-model-eval = "proof_surface.model_eval.cli:main"
 
 [tool.pytest.ini_options]
 addopts = "-q"
