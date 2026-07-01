@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import derive_decision_summary
 from ..authorization_receipt import check_action
 from .importer import ActionRecord, _canonical_digest, import_trace
 from .packet import PACKET_VERSION
@@ -62,6 +63,7 @@ def build_agent_action_packet(
         "uncertainty": [
             f"flagged span {f.span_id}: {f.reason}" for f in imported.flagged
         ],
+        "decision_summary": derive_decision_summary("UNVERIFIABLE"),
     }
     return packet
 

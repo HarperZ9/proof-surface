@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import derive_decision_summary
 from .._verdict import combine_overall, verdict_for_measurement
 from .packet import PACKET_VERSION
 
@@ -70,6 +71,12 @@ def build_research_claim_packet(
         "verdicts": {"overall": overall, "per_check": per_check},
         "promotion": resolved_promotion,
         "uncertainty": list(uncertainty or []),
+        "decision_summary": derive_decision_summary(
+            overall,
+            missing_evidence=list(uncertainty or [])
+            if overall == "UNVERIFIABLE"
+            else None,
+        ),
     }
 
 

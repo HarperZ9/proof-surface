@@ -22,7 +22,7 @@ Design principles
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from ._validate import Issue, reject_unknown, require_const, require_enum, require_text

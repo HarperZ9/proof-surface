@@ -1,8 +1,8 @@
 {
   "version": "agent-action-proof-packet/v0",
   "packet_id": "demo-otel",
-  "claim": "The agent wrote /work/config.json under grant grant-fs-write-work, reconstructed from an OpenTelemetry export.",
-  "scope": "One filesystem write; network excluded; source is a raw OTLP/JSON trace.",
+  "claim": "The agent wrote /work/config.json under grant grant-fs-write-work (from an OTel export).",
+  "scope": "One filesystem write; network excluded.",
   "sources": [
     {
       "ref": "trace:4bf92f3577b34da6a3ce929d0e0e4736",
@@ -65,5 +65,12 @@
       }
     ]
   },
-  "uncertainty": []
+  "uncertainty": [],
+  "decision_summary": {
+    "decision": "approve",
+    "reason": "the evidence matched every checked claim within tolerance",
+    "confidence": "high",
+    "missing_evidence": [],
+    "next_action": "proceed"
+  }
 }

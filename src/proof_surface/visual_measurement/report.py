@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import render_decision_summary
+
 
 def _short(digest: Any) -> str:
     if isinstance(digest, str) and digest:
@@ -34,12 +36,17 @@ def render_report(packet: dict[str, Any]) -> str:
         "",
         f"- space `{color.get('color_space')}` - transfer `{color.get('transfer')}`"
         f" - white point `{color.get('white_point')}`",
-        "",
-        "## Measurements",
-        "",
-        "| Metric | Value | Target | Deviation | Tolerance | Verdict |",
-        "| --- | ---: | ---: | ---: | ---: | --- |",
     ]
+    lines.extend(render_decision_summary(packet.get("decision_summary")))
+    lines.extend(
+        [
+            "",
+            "## Measurements",
+            "",
+            "| Metric | Value | Target | Deviation | Tolerance | Verdict |",
+            "| --- | ---: | ---: | ---: | ---: | --- |",
+        ]
+    )
     lines.extend(_measurement_rows(packet))
     lines.extend(_section("Display caveats", packet.get("display_caveats")))
     lines.extend(_section("Uncertainty", packet.get("uncertainty")))

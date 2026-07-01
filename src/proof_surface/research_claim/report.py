@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import render_decision_summary
+
 
 def render_report(packet: dict[str, Any]) -> str:
     verdicts = packet.get("verdicts") or {}
@@ -20,6 +22,7 @@ def render_report(packet: dict[str, Any]) -> str:
         "",
         f"> {packet.get('statement', '')}",
     ]
+    lines.extend(render_decision_summary(packet.get("decision_summary")))
     lines.extend(_sources(packet.get("sources")))
     lines.extend(_attempts(packet.get("attempts")))
     lines.extend(_checks(packet))

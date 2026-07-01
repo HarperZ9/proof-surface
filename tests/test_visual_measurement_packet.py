@@ -46,6 +46,13 @@ def _valid() -> dict:
             "per_metric": [{"metric": "delta_e_2000", "status": "MATCH"}],
         },
         "uncertainty": [],
+        "decision_summary": {
+            "decision": "approve",
+            "reason": "measured within tolerance of the targets",
+            "confidence": "high",
+            "missing_evidence": [],
+            "next_action": "proceed",
+        },
     }
 
 

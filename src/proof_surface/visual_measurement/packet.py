@@ -16,6 +16,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .._decision import validate_decision_summary
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
@@ -37,6 +38,7 @@ ROOT_FIELDS = {
     "display_caveats",
     "verdicts",
     "uncertainty",
+    "decision_summary",
 }
 ARTIFACT_FIELDS = {"name", "sha256", "kind", "width", "height"}
 COLOR_FIELDS = {"color_space", "transfer", "white_point", "primaries", "notes"}
@@ -84,6 +86,9 @@ def validate_visual_measurement_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)
     _validate_consistency(data, issues)
+    validate_decision_summary(
+        data.get("decision_summary"), issues, "$.decision_summary"
+    )
     return issues
 
 

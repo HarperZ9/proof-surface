@@ -18,6 +18,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .._decision import validate_decision_summary
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 
 # Reuse the family's two neutrality guards verbatim -- one source of truth, so
@@ -45,6 +46,7 @@ ROOT_FIELDS = {
     "outputs",
     "verdicts",
     "uncertainty",
+    "decision_summary",
 }
 SOURCE_FIELDS = {"ref", "sha256"}
 ACTION_FIELDS = {
@@ -102,6 +104,9 @@ def validate_agent_action_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_uncertainty(data.get("uncertainty"), issues)
     validate_consistency(data, issues)
+    validate_decision_summary(
+        data.get("decision_summary"), issues, "$.decision_summary"
+    )
     return issues
 
 

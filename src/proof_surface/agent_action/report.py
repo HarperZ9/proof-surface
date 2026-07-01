@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import render_decision_summary
+
 
 def _short(digest: Any) -> str:
     if isinstance(digest, str) and digest:
@@ -48,9 +50,9 @@ def render_report(packet: dict[str, Any]) -> str:
         f" - **Flagged/uncertain:** {len(packet.get('uncertainty') or [])}",
         "",
         _TRACE_VS_RECEIPT,
-        "## Actions",
-        "",
     ]
+    lines.extend(render_decision_summary(packet.get("decision_summary")))
+    lines.extend(["", "## Actions", ""])
     lines.extend(_render_actions(packet))
     lines.extend(_render_outputs(packet.get("outputs")))
     lines.extend(_render_list("Uncertainty", packet.get("uncertainty")))

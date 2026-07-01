@@ -59,6 +59,13 @@ def _valid_packet() -> dict:
             "per_action": [{"action_id": "s2", "status": "MATCH"}],
         },
         "uncertainty": [],
+        "decision_summary": {
+            "decision": "approve",
+            "reason": "the write was admitted and verified",
+            "confidence": "high",
+            "missing_evidence": [],
+            "next_action": "proceed",
+        },
     }
 
 
