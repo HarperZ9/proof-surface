@@ -42,9 +42,10 @@ def build_eval_attempt_packet(
     scope: str,
     packet_id: str,
     uncertainty: list[str] | None = None,
+    failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     overall = _derive_verdict(result, boundaries, attempt)
-    return {
+    packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
         "claim": claim,
@@ -58,6 +59,9 @@ def build_eval_attempt_packet(
         "uncertainty": list(uncertainty or []),
         "decision_summary": derive_decision_summary(overall),
     }
+    if failure_labels is not None:
+        packet["failure_labels"] = list(failure_labels)
+    return packet
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:

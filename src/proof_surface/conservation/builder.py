@@ -45,6 +45,7 @@ def build_conservation_packet(
     packet_id: str,
     boundary_fixture: dict[str, Any] | None = None,
     uncertainty: list[str] | None = None,
+    failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     overall = _derive_verdict(witnesses)
     packet = {
@@ -63,6 +64,8 @@ def build_conservation_packet(
     }
     if boundary_fixture is not None:
         packet["boundary_fixture"] = dict(boundary_fixture)
+    if failure_labels is not None:
+        packet["failure_labels"] = list(failure_labels)
     return packet
 
 

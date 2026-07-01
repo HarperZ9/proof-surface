@@ -26,7 +26,7 @@ from .._validate import Issue, reject_unknown, require_const, require_enum, requ
 # the new packet cannot regress the invariant the sibling contracts enforce.
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
-from ._compute_lease import validate_compute_lease
+from .._compute_lease import validate_compute_lease
 from ._consistency import validate_consistency
 from ._evidence import validate_evidence_refs
 
@@ -230,7 +230,10 @@ def _validate_side_effects(value: Any, issues: list[Issue]) -> None:
         _require_opt_hex64(item.get("after_digest"), f"{path}.after_digest", issues)
         _validate_compensation(item.get("compensation"), f"{path}.compensation", issues)
         validate_compute_lease(
-            item.get("compute_lease"), item.get("class"), f"{path}.compute_lease", issues
+            item.get("compute_lease"),
+            item.get("class"),
+            f"{path}.compute_lease",
+            issues,
         )
 
 
