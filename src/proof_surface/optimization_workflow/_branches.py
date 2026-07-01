@@ -19,8 +19,10 @@ BASELINE_MATCHES = {"MATCH", "DRIFT", "UNVERIFIABLE"}
 BRANCH_FIELDS = {
     "branch_id",
     "method",
+    "runtime",
     "status",
     "objective_value",
+    "gap",
     "notes",
     "baseline_match",
 }
@@ -28,6 +30,19 @@ BRANCH_FIELDS = {
 
 def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def derive_gap(branch: dict[str, Any], baseline: dict[str, Any]) -> Any:
+    """The numeric distance from the exact baseline; None if the branch did not run."""
+    if branch.get("status") != "COMPLETED":
+        return None
+    value = branch.get("objective_value")
+    baseline_value = (
+        baseline.get("objective_value") if isinstance(baseline, dict) else None
+    )
+    if not _is_number(value) or not _is_number(baseline_value):
+        return None
+    return abs(value - baseline_value)
 
 
 def derive_baseline_match(
@@ -83,6 +98,31 @@ def validate_solver_branches(
                     "expected MATCH / DRIFT / UNVERIFIABLE or null",
                 )
             )
+        runtime = item.get("runtime")
+        if runtime is not None and (
+            not isinstance(runtime, str) or not runtime.strip()
+        ):
+            issues.append(
+                Issue(f"{branch_path}.runtime", "expected non-empty string or null")
+            )
+        _validate_gap(item, branch_path, issues)
+
+
+def _validate_gap(item: dict[str, Any], branch_path: str, issues: list[Issue]) -> None:
+    gap = item.get("gap")
+    if gap is None:
+        return
+    if item.get("status") != "COMPLETED":
+        issues.append(
+            Issue(
+                f"{branch_path}.gap",
+                "a non-executed branch must not claim a gap (dependency boundary, "
+                "not implied coverage)",
+            )
+        )
+        return
+    if isinstance(gap, bool) or not isinstance(gap, (int, float)) or gap < 0:
+        issues.append(Issue(f"{branch_path}.gap", "expected a non-negative number"))
 
 
 def _validate_value(
