@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "proof-surface"
-version = "0.1.0"
+version = "0.2.0"
 description = "The stdlib-only accountability contract: evidence packets, work-record receipts, and witness validators that reject authority-shaped content."
 readme = "README.md"
 requires-python = ">=3.10"
