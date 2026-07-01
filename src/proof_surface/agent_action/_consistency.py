@@ -49,6 +49,34 @@ def validate_consistency(data: dict[str, Any], issues: list[Issue]) -> None:
         "$.verdicts.per_action",
         issues,
     )
+    _reject_identity_substitution(data, issues)
+
+
+def _reject_identity_substitution(data: dict[str, Any], issues: list[Issue]) -> None:
+    """A receipt is not a trace: packet_id may not be a span id or the trace id."""
+    packet_id = data.get("packet_id")
+    if not isinstance(packet_id, str) or not packet_id:
+        return
+    actions = data.get("actions")
+    if isinstance(actions, list) and any(
+        isinstance(a, dict) and a.get("action_id") == packet_id for a in actions
+    ):
+        issues.append(
+            Issue(
+                "$.packet_id",
+                "receipt identity must not equal a span/action id (evidence is not a receipt)",
+            )
+        )
+    sources = data.get("sources")
+    if isinstance(sources, list) and any(
+        isinstance(s, dict) and s.get("ref") == f"trace:{packet_id}" for s in sources
+    ):
+        issues.append(
+            Issue(
+                "$.packet_id",
+                "receipt identity must not equal the trace id (a trace is evidence, not a receipt)",
+            )
+        )
 
 
 def _require_exactly_one(
