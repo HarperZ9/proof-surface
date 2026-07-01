@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .._validate import Issue, reject_unknown, require_enum, require_text
+from ._validate import Issue, reject_unknown, require_enum, require_text
 
 COMPUTE_LEASE_FIELDS = {
     "budget_ref",

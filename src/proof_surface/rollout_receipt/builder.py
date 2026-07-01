@@ -42,13 +42,15 @@ def build_rollout_receipt_packet(
     scope: str,
     packet_id: str,
     uncertainty: list[str] | None = None,
+    failure_labels: list[str] | None = None,
+    compute_lease: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     verdict = verifier.get("verdict", "UNVERIFIABLE")
     admission_decision = admission.get("decision", "escalate")
     overall = (
         verdict if verdict in {"MATCH", "DRIFT", "UNVERIFIABLE"} else "UNVERIFIABLE"
     )
-    return {
+    packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
         "claim": claim,
@@ -63,6 +65,11 @@ def build_rollout_receipt_packet(
         "uncertainty": list(uncertainty or []),
         "decision_summary": derive_decision_summary(overall),
     }
+    if compute_lease is not None:
+        packet["compute_lease"] = dict(compute_lease)
+    if failure_labels is not None:
+        packet["failure_labels"] = list(failure_labels)
+    return packet
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:

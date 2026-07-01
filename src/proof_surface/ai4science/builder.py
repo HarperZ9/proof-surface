@@ -55,11 +55,12 @@ def build_ai4science_packet(
     scope: str,
     packet_id: str,
     uncertainty: list[str] | None = None,
+    failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     has_open = _has_open_objection(reviewer_objections)
     promotion = _derive_promotion(measurement, reproduction, has_open)
     overall = _derive_verdict(promotion, reproduction, negative_result)
-    return {
+    packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
         "claim": claim,
@@ -78,6 +79,9 @@ def build_ai4science_packet(
         "uncertainty": list(uncertainty or []),
         "decision_summary": derive_decision_summary(overall),
     }
+    if failure_labels is not None:
+        packet["failure_labels"] = list(failure_labels)
+    return packet
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
