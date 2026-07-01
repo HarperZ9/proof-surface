@@ -20,6 +20,7 @@ from .._decision import validate_decision_summary
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
+from ._calibration import validate_calibration_boundary
 
 PACKET_VERSION = "visual-measurement-proof-packet/v0"
 
@@ -36,6 +37,7 @@ ROOT_FIELDS = {
     "read_only",
     "measurements",
     "display_caveats",
+    "calibration_boundary",
     "verdicts",
     "uncertainty",
     "decision_summary",
@@ -83,6 +85,9 @@ def validate_visual_measurement_packet(data: dict[str, Any]) -> list[Issue]:
         )
     _validate_measurements(data.get("measurements"), issues)
     _validate_str_list(data.get("display_caveats"), "$.display_caveats", issues)
+    validate_calibration_boundary(
+        data.get("calibration_boundary"), data.get("read_only"), issues
+    )
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)
     _validate_consistency(data, issues)

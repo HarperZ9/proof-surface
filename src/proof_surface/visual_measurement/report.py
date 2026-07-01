@@ -27,6 +27,7 @@ def render_report(packet: dict[str, Any]) -> str:
         f"- **Scope:** {packet.get('scope', '')}",
         f"- **Read-only:** {packet.get('read_only')} "
         "(non-mutation boundary: no LUT / ICC / DDC change is applied or claimed)",
+        _calibration_line(packet.get("calibration_boundary")),
         "",
         "## Artifact",
         "",
@@ -58,6 +59,20 @@ def render_report(packet: dict[str, Any]) -> str:
     )
     lines.extend(render_boundary())
     return "\n".join(lines)
+
+
+def _calibration_line(cb: Any) -> str:
+    if not isinstance(cb, dict):
+        return (
+            "- **Calibration boundary:** _not declared_ "
+            "(no physical display calibration is claimed)"
+        )
+    return (
+        f"- **Calibration boundary:** hardware_measurement_used="
+        f"{cb.get('hardware_measurement_used')}, physical_calibration_claim="
+        f"{cb.get('physical_calibration_claim')} "
+        "(a read-only surface makes no physical-calibration claim)"
+    )
 
 
 def _measurement_rows(packet: dict[str, Any]) -> list[str]:
