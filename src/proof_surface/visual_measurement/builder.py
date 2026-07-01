@@ -24,6 +24,7 @@ def build_visual_measurement_packet(
     packet_id: str,
     display_caveats: list[str] | None = None,
     calibration_boundary: dict[str, Any] | None = None,
+    failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     measurements: list[dict[str, Any]] = []
     per_metric: list[dict[str, Any]] = []
@@ -48,7 +49,7 @@ def build_visual_measurement_packet(
         per_metric.append({"metric": m["metric"], "status": status})
 
     overall = combine_overall(statuses)
-    return {
+    packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
         "claim": claim,
@@ -65,6 +66,9 @@ def build_visual_measurement_packet(
         "uncertainty": [],
         "decision_summary": derive_decision_summary(overall),
     }
+    if failure_labels is not None:
+        packet["failure_labels"] = list(failure_labels)
+    return packet
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:

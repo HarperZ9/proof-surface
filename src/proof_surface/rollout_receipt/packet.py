@@ -13,7 +13,9 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .._compute_lease import validate_compute_lease
 from .._decision import validate_decision_summary
+from .._failure import validate_failure_labels
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
@@ -35,6 +37,8 @@ ROOT_FIELDS = {
     "verifier",
     "admission",
     "promotion",
+    "compute_lease",
+    "failure_labels",
     "verdicts",
     "uncertainty",
     "decision_summary",
@@ -81,9 +85,14 @@ def validate_rollout_receipt_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_verifier(data.get("verifier"), issues)
     _validate_admission(data.get("admission"), issues)
     _validate_promotion(data.get("promotion"), issues)
+    validate_compute_lease(
+        data.get("compute_lease"), "external", "$.compute_lease", issues
+    )
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)
     _validate_default_deny(data, issues)
+    _validate_verdict_consistency(data, issues)
+    validate_failure_labels(data.get("failure_labels"), issues)
     validate_decision_summary(
         data.get("decision_summary"), issues, "$.decision_summary"
     )
@@ -209,5 +218,24 @@ def _validate_default_deny(data: dict[str, Any], issues: list[Issue]) -> None:
                 "$.promotion",
                 "a promote decision requires a MATCH verifier verdict and an allow "
                 "admission decision",
+            )
+        )
+
+
+def _validate_verdict_consistency(data: dict[str, Any], issues: list[Issue]) -> None:
+    """The overall verdict is the verifier's verdict -- the two may not disagree."""
+    verdicts = data.get("verdicts")
+    verifier = data.get("verifier")
+    overall = verdicts.get("overall") if isinstance(verdicts, dict) else None
+    verdict = verifier.get("verdict") if isinstance(verifier, dict) else None
+    if (
+        overall in OVERALL_VERDICTS
+        and verdict in OVERALL_VERDICTS
+        and overall != verdict
+    ):
+        issues.append(
+            Issue(
+                "$.verdicts.overall",
+                f"overall {overall!r} must mirror the verifier verdict {verdict!r}",
             )
         )
