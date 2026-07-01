@@ -11,13 +11,19 @@ from __future__ import annotations
 from typing import Any
 
 from .._decision import derive_decision_summary
+from ._integrity import has_audit_surface
 from .packet import PACKET_VERSION
 
 
-def _derive_verdict(result: dict[str, Any], boundaries: dict[str, Any]) -> str:
+def _derive_verdict(
+    result: dict[str, Any], boundaries: dict[str, Any], attempt: dict[str, Any]
+) -> str:
     outcome = result.get("outcome")
     if outcome == "correct":
         if boundaries.get("had_ground_truth") is True:
+            return "UNVERIFIABLE"
+        if not has_audit_surface(boundaries, attempt):
+            # Latent reasoning + no replay ref: nothing a checker can inspect.
             return "UNVERIFIABLE"
         return "MATCH"
     if outcome == "incorrect":
@@ -38,7 +44,7 @@ def build_eval_attempt_packet(
     uncertainty: list[str] | None = None,
     failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
-    overall = _derive_verdict(result, boundaries)
+    overall = _derive_verdict(result, boundaries, attempt)
     packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,

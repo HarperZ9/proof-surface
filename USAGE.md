@@ -8,7 +8,7 @@ is meant to be fed back into a model as trusted state -- these are **verifier
 inputs and reviewer-facing outputs**.
 
 > The output blocks below were produced by running the calls against
-> `proof_surface` 0.1.0 on CPython 3.12. Treat exact reason strings as
+> `proof_surface` 0.2.0 on CPython 3.12. Treat exact reason strings as
 > illustrative -- assert on `decision` / `verdict` / `path`, not on prose.
 
 ## Install
@@ -56,6 +56,34 @@ means valid.**
 ```python
 from proof_surface import Issue, validate_packet
 ```
+
+## Proof-packet wedges (the `telos-proof` CLI)
+
+Nine domain wedges live under `proof_surface.<wedge>` with a `build_*_packet`
+builder, a `validate_*_packet` validator, a `render_report`, and a
+`to_crucible_inputs` re-derivation helper. All nine also route through one CLI:
+
+```bash
+telos-proof <domain> --input run.json --claim "..." --scope "..." --out ./artifacts
+# equivalently: python -m proof_surface.<wedge> --input run.json ...
+```
+
+| Domain (`telos-proof <domain>`) | Module | Verdict is |
+| --- | --- | --- |
+| `agent-action` | `proof_surface.agent_action` | derived per action, filled by the crucible bridge |
+| `visual-measurement` | `proof_surface.visual_measurement` | `MATCH` iff every metric is within tolerance |
+| `research-claim` | `proof_surface.research_claim` | a promotion-ladder rung (never `PROMOTED_LAW`) |
+| `model-eval` | `proof_surface.model_eval` | default-deny promotion (promote only on `MATCH`) |
+| `optimization-workflow` | `proof_surface.optimization_workflow` | the solver-vs-exact-baseline obligation |
+| `rollout-receipt` | `proof_surface.rollout_receipt` | the verifier verdict, with default-deny promotion |
+| `eval-attempt` | `proof_surface.eval_attempt` | `MATCH` iff `correct` and uncontaminated |
+| `ai4science` | `proof_surface.ai4science` | `MATCH` once independently reproduced |
+| `conservation` | `proof_surface.conservation` | `MATCH` iff every witness conserves the invariant |
+
+Each CLI writes `packet.json`, a Markdown `report.md`, the crucible
+`thesis`/`measurements` for independent re-derivation, and a content-addressed
+`bundle.json`. Adapters for incumbent trace/eval systems live in
+`proof_surface.trace_adapters`.
 
 ---
 
