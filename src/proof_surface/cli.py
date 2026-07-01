@@ -22,6 +22,7 @@ _DOMAINS = {
     "rollout-receipt": "proof_surface.rollout_receipt.cli",
     "eval-attempt": "proof_surface.eval_attempt.cli",
     "ai4science": "proof_surface.ai4science.cli",
+    "conservation": "proof_surface.conservation.cli",
 }
 
 
