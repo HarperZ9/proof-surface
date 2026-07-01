@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-01 - 0.2.0 - Family hardening (post-integration)
+
+- Typed `failure_labels` (the shared `_failure` vocabulary) are now accepted by
+  ALL nine wedges, not just `agent_action`, per the rl-scaling receipt-spine note.
+- `research_claim` gained a first-class `REFUTED` promotion rung and a refutation
+  gate: a standing counterexample (a `refuted` attempt or `formal.counterexample_found`)
+  forces `REFUTED` and outranks passing checks; a PASSED kernel replay with
+  unresolved `sorry` holes is rejected.
+- `eval_attempt` gained an auditability gate: a `correct` outcome with a latent
+  (unavailable) reasoning trace and no `replay_ref` has no audit surface and is
+  not scored `MATCH`.
+- `_compute_lease` was promoted to the shared spine and wired onto `rollout_receipt`
+  (paid GPU / cluster compute as an accountable external write); rollout now also
+  enforces `$.verdicts.overall == $.verifier.verdict`.
+- The negative-fixture conformance gate ("a verifier that cannot fail is not a
+  verifier") now covers all nine wedges.
+
 ## 2026-07-01 - 0.2.0 - Proof-packet wedge family
 
 - Added nine domain proof-packet wedges, each a validator + builder + report +
