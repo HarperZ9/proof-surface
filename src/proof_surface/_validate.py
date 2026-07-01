@@ -26,7 +26,10 @@ def reject_unknown(
 
 
 def require_const(
-    data: dict[str, Any], field: str, expected: Any, issues: list[Issue],
+    data: dict[str, Any],
+    field: str,
+    expected: Any,
+    issues: list[Issue],
     path: str | None = None,
 ) -> None:
     if data.get(field) != expected:
@@ -42,7 +45,10 @@ def require_text(
 
 
 def require_enum(
-    data: dict[str, Any], field: str, allowed: set[str], issues: list[Issue],
+    data: dict[str, Any],
+    field: str,
+    allowed: set[str],
+    issues: list[Issue],
     path: str | None = None,
 ) -> None:
     value = data.get(field)

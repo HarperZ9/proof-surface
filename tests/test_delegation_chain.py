@@ -41,12 +41,23 @@ AGENT_A = {"id": "agent:planner", "kind": "agent", "key_id": "key-a"}
 AGENT_B = {"id": "agent:executor", "kind": "agent", "key_id": "key-b"}
 
 
-def _hop(frm, to, actions, targets, *, granted="2024-01-01T00:00:00Z",
-         expires="2999-01-01T00:00:00Z", revoked=False):
+def _hop(
+    frm,
+    to,
+    actions,
+    targets,
+    *,
+    granted="2024-01-01T00:00:00Z",
+    expires="2999-01-01T00:00:00Z",
+    revoked=False,
+):
     return {
-        "from": copy.deepcopy(frm), "to": copy.deepcopy(to),
+        "from": copy.deepcopy(frm),
+        "to": copy.deepcopy(to),
         "scope": {"allowed_actions": list(actions), "allowed_targets": list(targets)},
-        "granted_at": granted, "expires_at": expires, "revoked": revoked,
+        "granted_at": granted,
+        "expires_at": expires,
+        "revoked": revoked,
     }
 
 
@@ -77,6 +88,7 @@ def _chain(*hops, chain_id="c1", chain_binding=None):
 
 # --- structural validation: happy path -------------------------------------
 
+
 def test_minimal_valid_chain_passes():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], ["repo:x"])]))
     assert validate_delegation_chain(chain) == []
@@ -94,6 +106,7 @@ def test_non_object_rejected():
 
 # --- forbidden-field guard --------------------------------------------------
 
+
 def test_forbidden_field_rejected_at_root():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
     chain["prefire"] = {"x": 1}
@@ -105,17 +118,22 @@ def test_every_prefire_key_forbidden_at_root():
         chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
         chain[key] = "x"
         issues = validate_delegation_chain(chain)
-        assert any(i.path == f"$.{key}" and "forbidden" in i.message for i in issues), key
+        assert any(i.path == f"$.{key}" and "forbidden" in i.message for i in issues), (
+            key
+        )
 
 
 def test_forbidden_field_rejected_nested_in_party():
     hop = _hop(HUMAN, AGENT_A, ["read"], [])
     hop["from"]["sovereignty_capsule"] = {"y": 2}
     issues = validate_delegation_chain(_chain(*_sign([hop])))
-    assert any("sovereignty_capsule" in i.path and "forbidden" in i.message for i in issues)
+    assert any(
+        "sovereignty_capsule" in i.path and "forbidden" in i.message for i in issues
+    )
 
 
 # --- additionalProperties:false & enums -------------------------------------
+
 
 def test_unknown_root_field_rejected():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
@@ -133,15 +151,21 @@ def test_unknown_hop_field_rejected():
 def test_delegation_version_const():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
     chain["delegation_version"] = "2.0"
-    assert any(i.path == "$.delegation_version" for i in validate_delegation_chain(chain))
+    assert any(
+        i.path == "$.delegation_version" for i in validate_delegation_chain(chain)
+    )
 
 
 def test_party_kind_closed_enum():
     hop = _hop(HUMAN, {"id": "x", "kind": "robot"}, ["read"], [])
-    assert any(i.path.endswith(".to.kind") for i in validate_delegation_chain(_chain(*_sign([hop]))))
+    assert any(
+        i.path.endswith(".to.kind")
+        for i in validate_delegation_chain(_chain(*_sign([hop])))
+    )
 
 
 # --- structural rule: authority originates with a human ---------------------
+
 
 def test_root_from_must_be_human():
     hop = _hop(AGENT_A, AGENT_B, ["read"], [])  # root 'from' is an agent
@@ -150,19 +174,26 @@ def test_root_from_must_be_human():
 
 
 def test_non_root_from_may_be_agent():
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["read"], []),
-        _hop(AGENT_A, AGENT_B, ["read"], []),  # agent delegating onward is fine
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["read"], []),
+                _hop(AGENT_A, AGENT_B, ["read"], []),  # agent delegating onward is fine
+            ]
+        )
+    )
     assert validate_delegation_chain(chain) == []
 
 
 # --- binding format & required fields ---------------------------------------
 
+
 def test_bad_binding_format_rejected():
     hop = _hop(HUMAN, AGENT_A, ["read"], [])
     hop["binding"] = "deadbeef"
-    assert any(i.path.endswith(".binding") for i in validate_delegation_chain(_chain(hop)))
+    assert any(
+        i.path.endswith(".binding") for i in validate_delegation_chain(_chain(hop))
+    )
 
 
 def test_empty_hops_rejected():
@@ -171,16 +202,29 @@ def test_empty_hops_rejected():
 
 def test_non_iso_expiry_rejected():
     hop = _hop(HUMAN, AGENT_A, ["read"], [], expires="soon")
-    assert any(i.path.endswith(".expires_at") for i in validate_delegation_chain(_chain(*_sign([hop]))))
+    assert any(
+        i.path.endswith(".expires_at")
+        for i in validate_delegation_chain(_chain(*_sign([hop])))
+    )
 
 
 def test_expiry_must_be_after_grant():
-    hop = _hop(HUMAN, AGENT_A, ["read"], [],
-               granted="2030-01-01T00:00:00Z", expires="2029-01-01T00:00:00Z")
-    assert any(i.path.endswith(".expires_at") for i in validate_delegation_chain(_chain(*_sign([hop]))))
+    hop = _hop(
+        HUMAN,
+        AGENT_A,
+        ["read"],
+        [],
+        granted="2030-01-01T00:00:00Z",
+        expires="2029-01-01T00:00:00Z",
+    )
+    assert any(
+        i.path.endswith(".expires_at")
+        for i in validate_delegation_chain(_chain(*_sign([hop])))
+    )
 
 
 # --- compute_binding ---------------------------------------------------------
+
 
 def test_compute_binding_is_deterministic():
     hop = _hop(HUMAN, AGENT_A, ["read"], ["repo:x"])
@@ -200,6 +244,7 @@ def test_compute_binding_chains_on_previous():
 
 # --- verify_delegation: VALID happy paths -----------------------------------
 
+
 def test_verify_single_hop_valid():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read", "write"], ["repo:x"])]))
     v = verify_delegation(chain, now=NOW)
@@ -207,10 +252,14 @@ def test_verify_single_hop_valid():
 
 
 def test_verify_two_hop_attenuating_valid():
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["read", "summarize", "write"], []),
-        _hop(AGENT_A, AGENT_B, ["read", "summarize"], ["repo:proof-surface"]),
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["read", "summarize", "write"], []),
+                _hop(AGENT_A, AGENT_B, ["read", "summarize"], ["repo:proof-surface"]),
+            ]
+        )
+    )
     v = verify_delegation(chain, now=NOW)
     assert v.verdict == VALID
     assert v.effective_scope["allowed_actions"] == ["read", "summarize"]
@@ -219,18 +268,25 @@ def test_verify_two_hop_attenuating_valid():
 
 
 def test_verify_valid_fixture_from_disk():
-    data = json.loads((CONF / "valid" / "two-hop-attenuating.chain.json").read_text(encoding="utf-8"))
+    data = json.loads(
+        (CONF / "valid" / "two-hop-attenuating.chain.json").read_text(encoding="utf-8")
+    )
     assert verify_delegation(data, now=NOW).verdict == VALID
 
 
 # --- verify_delegation: DENIED on escalation (the core anti-escalation rule) -
 
+
 def test_verify_denies_action_escalation():
     # hop1 claims 'write' which hop0 (the human grant) does not hold.
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["read"], []),
-        _hop(AGENT_A, AGENT_B, ["read", "write"], []),
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["read"], []),
+                _hop(AGENT_A, AGENT_B, ["read", "write"], []),
+            ]
+        )
+    )
     v = verify_delegation(chain, now=NOW)
     assert v.verdict == DENIED
     assert any("escalates" in r for r in v.reasons)
@@ -238,32 +294,45 @@ def test_verify_denies_action_escalation():
 
 def test_verify_denies_target_widening_to_any():
     # parent restricted to a target; child claims ANY target (empty list).
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["read"], ["repo:x"]),
-        _hop(AGENT_A, AGENT_B, ["read"], []),
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["read"], ["repo:x"]),
+                _hop(AGENT_A, AGENT_B, ["read"], []),
+            ]
+        )
+    )
     v = verify_delegation(chain, now=NOW)
     assert v.verdict == DENIED
     assert any("widen" in r or "ANY target" in r for r in v.reasons)
 
 
 def test_verify_denies_target_escalation_outside_parent():
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["read"], ["repo:x"]),
-        _hop(AGENT_A, AGENT_B, ["read"], ["repo:y"]),  # y not within {x}
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["read"], ["repo:x"]),
+                _hop(AGENT_A, AGENT_B, ["read"], ["repo:y"]),  # y not within {x}
+            ]
+        )
+    )
     assert verify_delegation(chain, now=NOW).verdict == DENIED
 
 
 def test_verify_allows_target_narrowing():
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["read"], ["repo:x", "repo:y"]),
-        _hop(AGENT_A, AGENT_B, ["read"], ["repo:x"]),  # subset -- fine
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["read"], ["repo:x", "repo:y"]),
+                _hop(AGENT_A, AGENT_B, ["read"], ["repo:x"]),  # subset -- fine
+            ]
+        )
+    )
     assert verify_delegation(chain, now=NOW).verdict == VALID
 
 
 # --- verify_delegation: DENIED on broken integrity --------------------------
+
 
 def test_verify_denies_tampered_scope():
     signed = _sign([_hop(HUMAN, AGENT_A, ["read"], [])])
@@ -274,28 +343,43 @@ def test_verify_denies_tampered_scope():
 
 
 def test_verify_denies_tampered_downstream_hop():
-    signed = _sign([
-        _hop(HUMAN, AGENT_A, ["read", "write"], []),
-        _hop(AGENT_A, AGENT_B, ["read"], []),
-    ])
+    signed = _sign(
+        [
+            _hop(HUMAN, AGENT_A, ["read", "write"], []),
+            _hop(AGENT_A, AGENT_B, ["read"], []),
+        ]
+    )
     signed[1]["to"]["id"] = "agent:impostor"  # tamper hop1 after signing
     assert verify_delegation(_chain(*signed), now=NOW).verdict == DENIED
 
 
 # --- verify_delegation: DENIED on expiry / not-yet-effective / revocation ----
 
+
 def test_verify_denies_expired_hop():
-    chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [],
-                                expires="2024-06-01T00:00:00Z")]))
+    chain = _chain(
+        *_sign([_hop(HUMAN, AGENT_A, ["read"], [], expires="2024-06-01T00:00:00Z")])
+    )
     v = verify_delegation(chain, now=NOW)
     assert v.verdict == DENIED
     assert any("expired" in r for r in v.reasons)
 
 
 def test_verify_denies_not_yet_effective():
-    chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [],
-                                granted="2999-01-01T00:00:00Z",
-                                expires="3000-01-01T00:00:00Z")]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(
+                    HUMAN,
+                    AGENT_A,
+                    ["read"],
+                    [],
+                    granted="2999-01-01T00:00:00Z",
+                    expires="3000-01-01T00:00:00Z",
+                )
+            ]
+        )
+    )
     assert verify_delegation(chain, now=NOW).verdict == DENIED
 
 
@@ -307,10 +391,14 @@ def test_verify_denies_revoked_hop():
 
 
 def test_effective_expiry_is_earliest():
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["read"], [], expires="2030-01-01T00:00:00Z"),
-        _hop(AGENT_A, AGENT_B, ["read"], [], expires="2027-01-01T00:00:00Z"),
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["read"], [], expires="2030-01-01T00:00:00Z"),
+                _hop(AGENT_A, AGENT_B, ["read"], [], expires="2027-01-01T00:00:00Z"),
+            ]
+        )
+    )
     v = verify_delegation(chain, now=NOW)
     assert v.verdict == VALID
     assert v.effective_expiry == "2027-01-01T00:00:00Z"
@@ -318,12 +406,17 @@ def test_effective_expiry_is_earliest():
 
 # --- verify_delegation: effective-scope intersection over 3 hops ------------
 
+
 def test_effective_scope_intersection_three_hops():
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["a", "b", "c"], []),
-        _hop(AGENT_A, AGENT_B, ["a", "b"], ["t1", "t2"]),
-        _hop(AGENT_B, AGENT_A, ["a"], ["t1"]),
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["a", "b", "c"], []),
+                _hop(AGENT_A, AGENT_B, ["a", "b"], ["t1", "t2"]),
+                _hop(AGENT_B, AGENT_A, ["a"], ["t1"]),
+            ]
+        )
+    )
     v = verify_delegation(chain, now=NOW)
     assert v.verdict == VALID
     assert v.effective_scope["allowed_actions"] == ["a"]
@@ -332,9 +425,13 @@ def test_effective_scope_intersection_three_hops():
 
 # --- verify_delegation: action / target authorisation against effective scope
 
+
 def test_verify_action_in_scope_allows():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read", "write"], ["repo:x"])]))
-    assert verify_delegation(chain, action="read", target="repo:x", now=NOW).verdict == VALID
+    assert (
+        verify_delegation(chain, action="read", target="repo:x", now=NOW).verdict
+        == VALID
+    )
 
 
 def test_verify_action_out_of_scope_denies():
@@ -346,7 +443,10 @@ def test_verify_action_out_of_scope_denies():
 
 def test_verify_target_out_of_scope_denies():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], ["repo:x"])]))
-    assert verify_delegation(chain, action="read", target="repo:y", now=NOW).verdict == DENIED
+    assert (
+        verify_delegation(chain, action="read", target="repo:y", now=NOW).verdict
+        == DENIED
+    )
 
 
 def test_verify_restricted_target_requires_target_arg():
@@ -362,6 +462,7 @@ def test_verify_any_target_allows_missing_target_arg():
 
 # --- verify_delegation: structural failure collapses to DENIED --------------
 
+
 def test_verify_structurally_invalid_is_denied():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
     chain["prefire"] = {"x": 1}
@@ -372,6 +473,7 @@ def test_verify_structurally_invalid_is_denied():
 
 # --- verify_delegation: honest signature-assurance path ---------------------
 
+
 def test_require_signatures_without_verifier_is_unverifiable():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
     v = verify_delegation(chain, now=NOW, require_signatures=True)
@@ -381,15 +483,17 @@ def test_require_signatures_without_verifier_is_unverifiable():
 
 def test_require_signatures_with_passing_verifier_is_valid():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
-    v = verify_delegation(chain, now=NOW, require_signatures=True,
-                          signature_verifier=lambda hop: True)
+    v = verify_delegation(
+        chain, now=NOW, require_signatures=True, signature_verifier=lambda hop: True
+    )
     assert v.verdict == VALID
 
 
 def test_require_signatures_with_failing_verifier_is_denied():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
-    v = verify_delegation(chain, now=NOW, require_signatures=True,
-                          signature_verifier=lambda hop: False)
+    v = verify_delegation(
+        chain, now=NOW, require_signatures=True, signature_verifier=lambda hop: False
+    )
     assert v.verdict == DENIED
 
 
@@ -398,13 +502,18 @@ def test_require_signatures_with_raising_verifier_is_denied():
     # attempted and failed, which is a positive failure (DENIED), not "the tool
     # cannot check" (UNVERIFIABLE is reserved for the no-verifier case).
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
+
     def boom(hop):
         raise RuntimeError("verifier offline")
-    v = verify_delegation(chain, now=NOW, require_signatures=True, signature_verifier=boom)
+
+    v = verify_delegation(
+        chain, now=NOW, require_signatures=True, signature_verifier=boom
+    )
     assert v.verdict == DENIED
 
 
 # --- target supplied without action (authorization bypass guard) ------------
+
 
 def test_verify_target_without_action_is_denied():
     # A target with no action skipped the whole scope check and returned VALID.
@@ -421,6 +530,7 @@ def test_verify_target_without_action_denied_even_for_any_target():
 
 # --- DENIED / UNVERIFIABLE verdicts must carry the deny-safe empty scope ------
 
+
 def _assert_deny_safe(scope):
     assert scope == {"allowed_actions": [], "allowed_targets": [], "any_target": False}
 
@@ -434,18 +544,25 @@ def test_revoked_denied_has_deny_safe_scope():
 
 
 def test_expired_denied_has_deny_safe_scope():
-    chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], ["repo:x"],
-                                expires="2024-06-01T00:00:00Z")]))
+    chain = _chain(
+        *_sign(
+            [_hop(HUMAN, AGENT_A, ["read"], ["repo:x"], expires="2024-06-01T00:00:00Z")]
+        )
+    )
     v = verify_delegation(chain, now=NOW)
     assert v.verdict == DENIED
     _assert_deny_safe(v.effective_scope)
 
 
 def test_escalation_denied_has_deny_safe_scope():
-    chain = _chain(*_sign([
-        _hop(HUMAN, AGENT_A, ["read"], []),
-        _hop(AGENT_A, AGENT_B, ["read", "write"], []),
-    ]))
+    chain = _chain(
+        *_sign(
+            [
+                _hop(HUMAN, AGENT_A, ["read"], []),
+                _hop(AGENT_A, AGENT_B, ["read", "write"], []),
+            ]
+        )
+    )
     v = verify_delegation(chain, now=NOW)
     assert v.verdict == DENIED
     _assert_deny_safe(v.effective_scope)
@@ -461,14 +578,17 @@ def test_unverifiable_has_deny_safe_scope():
 
 # --- whole-chain commitment: truncation & extension --------------------------
 
+
 def test_verify_denies_chain_truncation():
     # Build a valid 2-hop chain, then strip the attenuating leaf hop while keeping
     # the original (n=2) chain_binding. Each remaining hop still re-derives, but the
     # whole-chain commitment no longer matches.
-    signed = _sign([
-        _hop(HUMAN, AGENT_A, ["read", "write", "delete"], []),
-        _hop(AGENT_A, AGENT_B, ["read"], []),
-    ])
+    signed = _sign(
+        [
+            _hop(HUMAN, AGENT_A, ["read", "write", "delete"], []),
+            _hop(AGENT_A, AGENT_B, ["read"], []),
+        ]
+    )
     full = _chain(*signed)
     truncated = {**full, "hops": [signed[0]]}  # keeps full["chain_binding"]
     v = verify_delegation(truncated, now=NOW)
@@ -492,6 +612,7 @@ def test_verify_denies_chain_extension():
 
 # --- external anchor: pinned chain_binding -----------------------------------
 
+
 def test_pinned_chain_binding_match_is_valid():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
     v = verify_delegation(chain, now=NOW, pinned_chain_binding=chain["chain_binding"])
@@ -506,6 +627,7 @@ def test_pinned_chain_binding_mismatch_is_denied():
 
 
 # --- additional structural validation ----------------------------------------
+
 
 def test_chain_binding_required():
     chain = _chain(*_sign([_hop(HUMAN, AGENT_A, ["read"], [])]))
@@ -535,6 +657,7 @@ def test_forbidden_field_rejected_nested_in_scope():
 
 # --- conformance manifest ----------------------------------------------------
 
+
 def test_conformance_fixtures_match_manifest():
     manifest = json.loads((CONF / "manifest.json").read_text(encoding="utf-8"))
     for fixture in manifest["fixtures"]:
@@ -548,6 +671,7 @@ def test_conformance_fixtures_match_manifest():
 
 # --- schema / Python validator parity (dev-only; runtime stays stdlib-only) ---
 
+
 def test_json_schema_matches_python_validator():
     """Every conformance fixture must get the SAME verdict from the published JSON
     Schema and from the reference Python validator. This guards against the schema
@@ -555,8 +679,11 @@ def test_json_schema_matches_python_validator():
     timestamp patterns, non-whitespace patterns, the forbidden-field guard)."""
     jsonschema = pytest.importorskip("jsonschema")
     schema = json.loads(
-        (Path(__file__).resolve().parents[1] / "schemas" / "delegation-chain.schema.json")
-        .read_text(encoding="utf-8")
+        (
+            Path(__file__).resolve().parents[1]
+            / "schemas"
+            / "delegation-chain.schema.json"
+        ).read_text(encoding="utf-8")
     )
     jsonschema.Draft202012Validator.check_schema(schema)
     validator = jsonschema.Draft202012Validator(schema)

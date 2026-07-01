@@ -7,7 +7,9 @@ CONF = Path(__file__).resolve().parents[1] / "conformance" / "proof-surface" / "
 
 
 def _valid() -> dict:
-    return json.loads((CONF / "valid" / "minimal.packet.json").read_text(encoding="utf-8"))
+    return json.loads(
+        (CONF / "valid" / "minimal.packet.json").read_text(encoding="utf-8")
+    )
 
 
 def test_valid_packet_passes():

@@ -124,7 +124,11 @@ def _validate_inputs(value: Any, issues: list[Issue]) -> None:
         require_text(item, "name", issues, f"$.inputs[{index}].name")
         sha = item.get("sha256")
         if not isinstance(sha, str) or not _SHA256_RE.fullmatch(sha):
-            issues.append(Issue(f"$.inputs[{index}].sha256", "expected 64-char lowercase hex sha256"))
+            issues.append(
+                Issue(
+                    f"$.inputs[{index}].sha256", "expected 64-char lowercase hex sha256"
+                )
+            )
 
 
 def _validate_actions(value: Any, issues: list[Issue]) -> None:
@@ -146,7 +150,9 @@ def _validate_evidence(value: Any, issues: list[Issue]) -> None:
             continue
         reject_unknown(item, f"$.evidence[{index}]", EVIDENCE_FIELDS, issues)
         require_text(item, "source", issues, f"$.evidence[{index}].source")
-        require_enum(item, "verdict", EVIDENCE_VERDICTS, issues, f"$.evidence[{index}].verdict")
+        require_enum(
+            item, "verdict", EVIDENCE_VERDICTS, issues, f"$.evidence[{index}].verdict"
+        )
 
 
 def _validate_cost(value: Any, issues: list[Issue]) -> None:

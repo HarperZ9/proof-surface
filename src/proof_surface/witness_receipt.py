@@ -86,11 +86,14 @@ def validate_witness_receipt_file(path: Path) -> list[Issue]:
 def _token_present(token: str, text: str) -> bool:
     # Case-insensitive; word boundary excludes underscore so 'AUTHORIZED_role'
     # and lowercase 'trusted' are both caught.
-    return re.search(
-        r"(?<![A-Za-z0-9])" + re.escape(token) + r"(?![A-Za-z0-9])",
-        text,
-        re.IGNORECASE,
-    ) is not None
+    return (
+        re.search(
+            r"(?<![A-Za-z0-9])" + re.escape(token) + r"(?![A-Za-z0-9])",
+            text,
+            re.IGNORECASE,
+        )
+        is not None
+    )
 
 
 def _reject_authority_language(node: Any, path: str, issues: list[Issue]) -> None:
@@ -141,7 +144,12 @@ def _validate_subject(value: Any, issues: list[Issue]) -> None:
             reject_unknown(digest, f"$.subject[{index}].digest", DIGEST_FIELDS, issues)
             sha = digest.get("sha256")
             if not isinstance(sha, str) or not _SHA256_RE.fullmatch(sha):
-                issues.append(Issue(f"$.subject[{index}].digest.sha256", "expected 64-char lowercase hex sha256"))
+                issues.append(
+                    Issue(
+                        f"$.subject[{index}].digest.sha256",
+                        "expected 64-char lowercase hex sha256",
+                    )
+                )
 
 
 def _validate_evidence(value: Any, issues: list[Issue]) -> None:
