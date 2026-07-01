@@ -92,7 +92,9 @@ def _validate_checks(value: Any, issues: list[Issue]) -> None:
             continue
         reject_unknown(item, f"$.checks[{index}]", CHECK_FIELDS, issues)
         require_text(item, "tool", issues, f"$.checks[{index}].tool")
-        require_enum(item, "status", CHECK_STATUSES, issues, f"$.checks[{index}].status")
+        require_enum(
+            item, "status", CHECK_STATUSES, issues, f"$.checks[{index}].status"
+        )
         require_text(item, "summary", issues, f"$.checks[{index}].summary")
 
 
@@ -102,4 +104,6 @@ def _validate_action_items(value: Any, issues: list[Issue]) -> None:
         return
     for index, item in enumerate(value):
         if not isinstance(item, str) or not item.strip():
-            issues.append(Issue(f"$.action_items[{index}]", "expected non-empty string"))
+            issues.append(
+                Issue(f"$.action_items[{index}]", "expected non-empty string")
+            )

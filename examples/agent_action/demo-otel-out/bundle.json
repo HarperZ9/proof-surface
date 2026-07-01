@@ -1,0 +1,24 @@
+{
+  "schema": "proof-surface-bundle/v0",
+  "domain": "agent-action",
+  "packet_id": "demo-otel",
+  "bundle_hash": "ed83172629be5a194f7a5b6dea24c9ee69ccba16f74e6f240d445b7fa52263ec",
+  "files": [
+    {
+      "name": "packet.json",
+      "sha256": "9be07f8894bfa1147b998c9d96027ec09b81a8286d43ca9bcf96bccbd6cb1e1a"
+    },
+    {
+      "name": "report.md",
+      "sha256": "ed665f4922c1f13840929878cd987c46889c8b5f1294c49974101c49cb32cfe2"
+    },
+    {
+      "name": "crucible-thesis.json",
+      "sha256": "0f9cc4b089d55f4644e06ecd2bd2ccbb878f2b6a453db22f92fc3c638e16d394"
+    },
+    {
+      "name": "crucible-measurements.json",
+      "sha256": "0b150d6d6a729d8d286cef458f242cde820f3ae24ce089cf056df0e45dd4dc49"
+    }
+  ]
+}

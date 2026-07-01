@@ -28,7 +28,7 @@ Decision aggregation
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from ._validate import Issue, reject_unknown, require_text
@@ -330,16 +330,24 @@ def _check_state(
         if verdict in WITNESS_CONFIRMING:
             pass  # positive confirmation -- leaves result at PASS
         elif verdict == WITNESS_DRIFT:
-            reasons.append("state denied: witness_verdict is DRIFT -- target has drifted from expected state")
+            reasons.append(
+                "state denied: witness_verdict is DRIFT -- target has drifted from expected state"
+            )
             result = FAIL
         elif verdict == WITNESS_VIEW_DIFFERS:
-            reasons.append("state denied: witness_verdict is VIEW_DIFFERS_FROM_SOURCE -- view does not match source")
+            reasons.append(
+                "state denied: witness_verdict is VIEW_DIFFERS_FROM_SOURCE -- view does not match source"
+            )
             result = FAIL
         elif verdict == WITNESS_QUARANTINE:
-            reasons.append("state denied: witness_verdict is QUARANTINE_READ_PATH_DIVERGENCE -- read path is quarantined")
+            reasons.append(
+                "state denied: witness_verdict is QUARANTINE_READ_PATH_DIVERGENCE -- read path is quarantined"
+            )
             result = FAIL
         elif verdict == WITNESS_UNVERIFIABLE:
-            reasons.append("state unknown: witness_verdict is UNVERIFIABLE -- cannot confirm target state")
+            reasons.append(
+                "state unknown: witness_verdict is UNVERIFIABLE -- cannot confirm target state"
+            )
             if result != FAIL:
                 result = UNKNOWN
 
@@ -401,7 +409,9 @@ def _validate_estimated_cost(value: Any, issues: list[Issue]) -> None:
     if not isinstance(value, dict):
         issues.append(Issue("$.planned_action.estimated_cost", "expected object"))
         return
-    reject_unknown(value, "$.planned_action.estimated_cost", ESTIMATED_COST_FIELDS, issues)
+    reject_unknown(
+        value, "$.planned_action.estimated_cost", ESTIMATED_COST_FIELDS, issues
+    )
     for field_name in ("tokens", "wall_ms"):
         if field_name in value:
             v = value[field_name]
@@ -416,7 +426,9 @@ def _validate_estimated_cost(value: Any, issues: list[Issue]) -> None:
 
 def _validate_authorization_field(value: Any, issues: list[Issue]) -> None:
     if not isinstance(value, dict):
-        issues.append(Issue("$.authorization", "expected object (authorization-receipt)"))
+        issues.append(
+            Issue("$.authorization", "expected object (authorization-receipt)")
+        )
         return
     # Structural validation is deferred to evaluate_gate; here we only verify
     # it is an object so the field guard and reject_unknown can run.
@@ -449,9 +461,7 @@ def _validate_state(value: Any, issues: list[Issue]) -> None:
     verdict = value.get("witness_verdict")
     if verdict is not None and verdict not in WITNESS_VERDICTS:
         choices = ", ".join(sorted(WITNESS_VERDICTS))
-        issues.append(
-            Issue("$.state.witness_verdict", f"expected one of: {choices}")
-        )
+        issues.append(Issue("$.state.witness_verdict", f"expected one of: {choices}"))
     for digest_field in ("target_digest", "expected_digest"):
         if digest_field in value:
             dv = value[digest_field]

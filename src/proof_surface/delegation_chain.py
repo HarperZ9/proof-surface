@@ -138,7 +138,9 @@ def compute_binding(hop: dict[str, Any], prev_binding: str) -> str:
     module docstring.
     """
     payload = {k: v for k, v in hop.items() if k != "binding"}
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    canonical = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    )
     return hashlib.sha256((prev_binding + "\n" + canonical).encode("utf-8")).hexdigest()
 
 
@@ -189,7 +191,12 @@ def validate_delegation_chain(data: Any) -> list[Issue]:
 
     chain_binding = data.get("chain_binding")
     if not isinstance(chain_binding, str) or not _HEX64_RE.match(chain_binding):
-        issues.append(Issue("$.chain_binding", "expected 64-char lowercase hex SHA-256 chain binding"))
+        issues.append(
+            Issue(
+                "$.chain_binding",
+                "expected 64-char lowercase hex SHA-256 chain binding",
+            )
+        )
 
     hops = data.get("hops")
     if not isinstance(hops, list) or not hops:
@@ -268,8 +275,10 @@ def verify_delegation(
     if shape_issues:
         return DelegationVerdict(
             verdict=DENIED,
-            reasons=["chain is structurally invalid",
-                     *[f"{i.path}: {i.message}" for i in shape_issues]],
+            reasons=[
+                "chain is structurally invalid",
+                *[f"{i.path}: {i.message}" for i in shape_issues],
+            ],
             effective_scope=empty_scope,
             effective_expiry=None,
         )
@@ -295,7 +304,9 @@ def verify_delegation(
     # attenuating leaf hops widens the effective scope, and every remaining hop's
     # binding still re-derives.  Re-deriving chain_binding catches both naive
     # truncation and extension (the hop count and/or leaf binding change).
-    expected_chain_binding = compute_chain_binding(chain["chain_id"], len(hops), prev_binding)
+    expected_chain_binding = compute_chain_binding(
+        chain["chain_id"], len(hops), prev_binding
+    )
     if chain.get("chain_binding") != expected_chain_binding:
         reasons.append(
             "chain_binding does not re-derive: the hop count or terminal binding "
@@ -306,7 +317,10 @@ def verify_delegation(
     # --- External anchor: a pinned chain_binding is the real anti-forgery check.
     # A full-document attacker can recompute the keyless chain_binding; pinning the
     # value the verifier obtained out-of-band is what defeats that.
-    if pinned_chain_binding is not None and chain["chain_binding"] != pinned_chain_binding:
+    if (
+        pinned_chain_binding is not None
+        and chain["chain_binding"] != pinned_chain_binding
+    ):
         reasons.append(
             "chain_binding does not match the pinned out-of-band value -- the "
             "document does not correspond to the anchored chain"
@@ -391,7 +405,9 @@ def verify_delegation(
             reasons.append(f"hop[{i}] has an unparseable timestamp")
             return DelegationVerdict(DENIED, reasons, empty_scope, None)
         if _now < grant:
-            reasons.append(f"hop[{i}] has not yet taken effect (granted_at is in the future)")
+            reasons.append(
+                f"hop[{i}] has not yet taken effect (granted_at is in the future)"
+            )
             return DelegationVerdict(DENIED, reasons, empty_scope, None)
         if _now >= exp:
             reasons.append(f"hop[{i}] has expired")
@@ -456,8 +472,10 @@ def verify_delegation(
                 )
                 return DelegationVerdict(DENIED, reasons, empty_scope, None)
 
-    reasons.append("delegation chain is valid: rooted in a human, every hop "
-                   "attenuates its parent, integrity intact, nothing expired or revoked")
+    reasons.append(
+        "delegation chain is valid: rooted in a human, every hop "
+        "attenuates its parent, integrity intact, nothing expired or revoked"
+    )
     return DelegationVerdict(VALID, reasons, effective_scope, effective_expiry_str)
 
 
@@ -500,10 +518,14 @@ def _validate_hop(hop: Any, index: int, *, is_root: bool, issues: list[Issue]) -
 
     binding = hop.get("binding")
     if not isinstance(binding, str) or not _HEX64_RE.match(binding):
-        issues.append(Issue(f"{base}.binding", "expected 64-char lowercase hex SHA-256 binding"))
+        issues.append(
+            Issue(f"{base}.binding", "expected 64-char lowercase hex SHA-256 binding")
+        )
 
 
-def _validate_party(value: Any, path: str, *, is_root: bool, issues: list[Issue]) -> None:
+def _validate_party(
+    value: Any, path: str, *, is_root: bool, issues: list[Issue]
+) -> None:
     if not isinstance(value, dict):
         issues.append(Issue(path, "expected object"))
         return
@@ -517,11 +539,13 @@ def _validate_party(value: Any, path: str, *, is_root: bool, issues: list[Issue]
         issues.append(Issue(f"{path}.kind", f"expected one of: {choices}"))
     elif is_root and kind != PARTY_HUMAN:
         # Authority must originate with a human; an agent cannot be the root.
-        issues.append(Issue(
-            f"{path}.kind",
-            "the root hop's 'from' party must be a human -- authority cannot "
-            "originate with an agent",
-        ))
+        issues.append(
+            Issue(
+                f"{path}.kind",
+                "the root hop's 'from' party must be a human -- authority cannot "
+                "originate with an agent",
+            )
+        )
     key_id = value.get("key_id")
     if key_id is not None and (not isinstance(key_id, str) or not key_id.strip()):
         issues.append(Issue(f"{path}.key_id", "expected non-empty string when present"))
@@ -535,31 +559,45 @@ def _validate_scope(value: Any, path: str, issues: list[Issue]) -> None:
     for field_name in ("allowed_actions", "allowed_targets"):
         arr = value.get(field_name)
         if not isinstance(arr, list):
-            issues.append(Issue(f"{path}.{field_name}", "expected array (may be empty)"))
+            issues.append(
+                Issue(f"{path}.{field_name}", "expected array (may be empty)")
+            )
             continue
         for i, item in enumerate(arr):
             if not isinstance(item, str) or not item.strip():
-                issues.append(Issue(f"{path}.{field_name}[{i}]", "expected non-empty string"))
+                issues.append(
+                    Issue(f"{path}.{field_name}[{i}]", "expected non-empty string")
+                )
         # Reject duplicates: comparisons are set-based, so a duplicate in the
         # stored document would silently vanish from the computed effective_scope.
         # Keeping the document and the effective scope in agreement preserves the
         # delegation document's value as an authoritative, auditable record.
         strings = [x for x in arr if isinstance(x, str)]
         if len(strings) != len(set(strings)):
-            issues.append(Issue(f"{path}.{field_name}", "duplicate entries are not permitted"))
+            issues.append(
+                Issue(f"{path}.{field_name}", "duplicate entries are not permitted")
+            )
 
 
-def _validate_timestamp(data: dict[str, Any], field: str, base: str, issues: list[Issue]) -> None:
+def _validate_timestamp(
+    data: dict[str, Any], field: str, base: str, issues: list[Issue]
+) -> None:
     value = data.get(field)
     if not isinstance(value, str) or not _ISO8601_RE.match(value):
-        issues.append(Issue(
-            f"{base}.{field}",
-            "expected ISO-8601 datetime string with timezone (authority must expire)",
-        ))
+        issues.append(
+            Issue(
+                f"{base}.{field}",
+                "expected ISO-8601 datetime string with timezone (authority must expire)",
+            )
+        )
 
 
-def _validate_timestamp_ordering(hop: dict[str, Any], base: str, issues: list[Issue]) -> None:
+def _validate_timestamp_ordering(
+    hop: dict[str, Any], base: str, issues: list[Issue]
+) -> None:
     granted = _parse_iso8601(hop.get("granted_at", ""))
     expires = _parse_iso8601(hop.get("expires_at", ""))
     if granted is not None and expires is not None and expires <= granted:
-        issues.append(Issue(f"{base}.expires_at", "expires_at must be after granted_at"))
+        issues.append(
+            Issue(f"{base}.expires_at", "expires_at must be after granted_at")
+        )

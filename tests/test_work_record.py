@@ -8,7 +8,9 @@ CONF = Path(__file__).resolve().parents[1] / "conformance" / "work-record" / "v0
 
 
 def _valid() -> dict:
-    return json.loads((CONF / "valid" / "minimal.record.json").read_text(encoding="utf-8"))
+    return json.loads(
+        (CONF / "valid" / "minimal.record.json").read_text(encoding="utf-8")
+    )
 
 
 def test_minimal_valid_record_passes():
@@ -26,14 +28,18 @@ def test_every_prefire_key_is_forbidden():
         data = _valid()
         data[key] = "x"
         issues = validate_work_record(data)
-        assert any(issue.path == f"$.{key}" and "forbidden" in issue.message for issue in issues), key
+        assert any(
+            issue.path == f"$.{key}" and "forbidden" in issue.message
+            for issue in issues
+        ), key
 
 
 def test_forbidden_field_rejected_when_nested():
     data = _valid()
     data["cost"]["authorization_context_mode"] = "lossy_neutral_embedded_state"
     assert any(
-        issue.path.endswith("authorization_context_mode") and "forbidden" in issue.message
+        issue.path.endswith("authorization_context_mode")
+        and "forbidden" in issue.message
         for issue in validate_work_record(data)
     )
 
