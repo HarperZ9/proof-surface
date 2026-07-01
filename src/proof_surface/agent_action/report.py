@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._boundary import render_boundary
 from .._decision import render_decision_summary
 
 
@@ -62,6 +63,7 @@ def render_report(packet: dict[str, Any]) -> str:
         "measurements so an independent checker recomputes MATCH/DRIFT/UNVERIFIABLE "
         "from the same evidence._"
     )
+    lines.extend(render_boundary())
     return "\n".join(lines)
 
 
