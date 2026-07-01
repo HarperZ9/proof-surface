@@ -37,6 +37,7 @@ proof-surface-research-claim = "proof_surface.research_claim.cli:main"
 proof-surface-model-eval = "proof_surface.model_eval.cli:main"
 proof-surface-optimization = "proof_surface.optimization_workflow.cli:main"
 proof-surface-rollout-receipt = "proof_surface.rollout_receipt.cli:main"
+proof-surface-eval-attempt = "proof_surface.eval_attempt.cli:main"
 
 [tool.pytest.ini_options]
 addopts = "-q"
