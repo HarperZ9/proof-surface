@@ -27,6 +27,7 @@ def build_agent_action_packet(
     claim: str,
     scope: str,
     packet_id: str,
+    evidence_refs: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     imported = import_trace(trace)
     auth_ref = authorization.get("receipt_id", "")
@@ -65,6 +66,10 @@ def build_agent_action_packet(
         ],
         "decision_summary": derive_decision_summary("UNVERIFIABLE"),
     }
+    if evidence_refs is not None:
+        packet["evidence_refs"] = {
+            key: list(value) for key, value in evidence_refs.items()
+        }
     return packet
 
 

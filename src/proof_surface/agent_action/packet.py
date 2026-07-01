@@ -26,6 +26,7 @@ from .._validate import Issue, reject_unknown, require_const, require_enum, requ
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
 from ._consistency import validate_consistency
+from ._evidence import validate_evidence_refs
 
 PACKET_VERSION = "agent-action-proof-packet/v0"
 
@@ -44,6 +45,7 @@ ROOT_FIELDS = {
     "admission",
     "side_effects",
     "outputs",
+    "evidence_refs",
     "verdicts",
     "uncertainty",
     "decision_summary",
@@ -101,6 +103,7 @@ def validate_agent_action_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_admission(data.get("admission"), issues)
     _validate_side_effects(data.get("side_effects"), issues)
     _validate_outputs(data.get("outputs"), issues)
+    validate_evidence_refs(data.get("evidence_refs"), issues)
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_uncertainty(data.get("uncertainty"), issues)
     validate_consistency(data, issues)
