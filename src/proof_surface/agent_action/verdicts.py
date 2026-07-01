@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import derive_decision_summary
 from .._verdict import combine_overall, verdict_for_measurement
 
 _TOLERANCE = 0.5
@@ -96,10 +97,14 @@ def attach_verdicts(packet: dict[str, Any]) -> dict[str, Any]:
         per_action.append({"action_id": action.get("action_id"), "status": status})
 
     result = dict(packet)
-    result["verdicts"] = {
-        "overall": combine_overall(statuses),
-        "per_action": per_action,
-    }
+    overall = combine_overall(statuses)
+    result["verdicts"] = {"overall": overall, "per_action": per_action}
+    result["decision_summary"] = derive_decision_summary(
+        overall,
+        missing_evidence=result.get("uncertainty")
+        if overall == "UNVERIFIABLE"
+        else None,
+    )
     return result
 
 

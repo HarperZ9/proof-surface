@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import derive_decision_summary
 from .._verdict import combine_overall, verdict_for_measurement
 from .packet import PACKET_VERSION
 
@@ -80,6 +81,7 @@ def build_model_eval_packet(
         "decision": {"outcome": outcome, "reason": _REASON[outcome]},
         "verdicts": {"overall": overall, "per_metric": per_metric},
         "uncertainty": list(uncertainty or []),
+        "decision_summary": derive_decision_summary(overall),
     }
 
 

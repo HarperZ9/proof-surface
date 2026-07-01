@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import derive_decision_summary
 from .._verdict import combine_overall, verdict_for_measurement
 from .packet import PACKET_VERSION
 
@@ -45,6 +46,7 @@ def build_visual_measurement_packet(
         )
         per_metric.append({"metric": m["metric"], "status": status})
 
+    overall = combine_overall(statuses)
     return {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
@@ -55,8 +57,9 @@ def build_visual_measurement_packet(
         "read_only": True,
         "measurements": measurements,
         "display_caveats": list(display_caveats or []),
-        "verdicts": {"overall": combine_overall(statuses), "per_metric": per_metric},
+        "verdicts": {"overall": overall, "per_metric": per_metric},
         "uncertainty": [],
+        "decision_summary": derive_decision_summary(overall),
     }
 
 

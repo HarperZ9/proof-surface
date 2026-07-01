@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._decision import render_decision_summary
+
 
 def render_report(packet: dict[str, Any]) -> str:
     verdicts = packet.get("verdicts") or {}
@@ -29,12 +31,17 @@ def render_report(packet: dict[str, Any]) -> str:
         f"- **Model:** `{model.get('id')}` ({model.get('provider')}){cfg_note}",
         f"- **Eval set:** {eval_set.get('name')} (`{eval_set.get('ref')}`{size_note})",
         f"- **Objective:** {objective.get('name')} -- {objective.get('summary')}",
-        "",
-        "## Metrics",
-        "",
-        "| Metric | Value | Target | Dir | Deviation | Tolerance | Verdict |",
-        "| --- | ---: | ---: | --- | ---: | ---: | --- |",
     ]
+    lines.extend(render_decision_summary(packet.get("decision_summary")))
+    lines.extend(
+        [
+            "",
+            "## Metrics",
+            "",
+            "| Metric | Value | Target | Dir | Deviation | Tolerance | Verdict |",
+            "| --- | ---: | ---: | --- | ---: | ---: | --- |",
+        ]
+    )
     lines.extend(_metric_rows(packet))
     lines.extend(_section("Uncertainty", packet.get("uncertainty")))
     lines.append("")

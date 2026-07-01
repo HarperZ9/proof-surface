@@ -48,6 +48,13 @@ def _valid() -> dict:
         },
         "promotion": "PROBE_MATCH",
         "uncertainty": ["bounded probe, not a general proof for all n"],
+        "decision_summary": {
+            "decision": "approve",
+            "reason": "the check passed",
+            "confidence": "high",
+            "missing_evidence": [],
+            "next_action": "proceed",
+        },
     }
 
 

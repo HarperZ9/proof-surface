@@ -1,8 +1,8 @@
 # Agent-Action Proof Packet `demo-otel`
 
-**Verdict: MATCH** -- The agent wrote /work/config.json under grant grant-fs-write-work, reconstructed from an OpenTelemetry export.
+**Verdict: MATCH** -- The agent wrote /work/config.json under grant grant-fs-write-work (from an OTel export).
 
-- **Scope:** One filesystem write; network excluded; source is a raw OTLP/JSON trace.
+- **Scope:** One filesystem write; network excluded.
 - **Sources:** 1 - **Actions:** 1 - **Flagged/uncertain:** 0
 
 ## Trace vs Receipt
@@ -13,6 +13,12 @@
 | Admission | (nothing) | allow / deny / needs-human, the grant it was checked against, and the reason |
 | Side effect | (nothing) | class, idempotency key, compensation / rollback, before -> after digest |
 | Verification | (nothing) | a re-derivable MATCH / DRIFT / UNVERIFIABLE verdict |
+
+
+## Decision
+
+**APPROVE** (confidence: high) -- the evidence matched every checked claim within tolerance
+- **Next action:** proceed
 
 ## Actions
 

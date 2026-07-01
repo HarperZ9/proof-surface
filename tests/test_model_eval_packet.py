@@ -48,6 +48,13 @@ def _valid() -> dict:
             "per_metric": [{"metric": "accuracy", "status": "MATCH"}],
         },
         "uncertainty": [],
+        "decision_summary": {
+            "decision": "approve",
+            "reason": "all metrics met their objectives",
+            "confidence": "high",
+            "missing_evidence": [],
+            "next_action": "proceed",
+        },
     }
 
 
