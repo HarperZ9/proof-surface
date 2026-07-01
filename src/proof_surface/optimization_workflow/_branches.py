@@ -13,6 +13,7 @@ from typing import Any
 
 from .._validate import Issue, reject_unknown, require_enum, require_text
 from .._verdict import verdict_for_measurement
+from ._encoding import CONSTRAINT_ENCODINGS, SURROGATE_ENCODINGS
 
 BRANCH_STATUSES = {"COMPLETED", "NOT_RUN", "FAILED", "NOT_EXECUTED_DEPENDENCY_MISSING"}
 BASELINE_MATCHES = {"MATCH", "DRIFT", "UNVERIFIABLE"}
@@ -25,6 +26,9 @@ BRANCH_FIELDS = {
     "gap",
     "notes",
     "baseline_match",
+    "constraint_encoding",
+    "promotion_blocked",
+    "counterexample_ref",
 }
 
 
@@ -106,6 +110,56 @@ def validate_solver_branches(
                 Issue(f"{branch_path}.runtime", "expected non-empty string or null")
             )
         _validate_gap(item, branch_path, issues)
+        _validate_encoding_safety(item, branch_path, issues)
+
+
+def _validate_encoding_safety(
+    item: dict[str, Any], branch_path: str, issues: list[Issue]
+) -> None:
+    """Fixture-match is not encoding-soundness (pass 0103).
+
+    A surrogate-encoded branch may match the fixture optimum, but its encoding is
+    not a sound general reduction until proven -- so it must be promotion_blocked
+    and cite the refuting counterexample.
+    """
+    encoding = item.get("constraint_encoding")
+    if encoding is not None and encoding not in CONSTRAINT_ENCODINGS:
+        issues.append(
+            Issue(
+                f"{branch_path}.constraint_encoding",
+                f"expected one of {sorted(CONSTRAINT_ENCODINGS)} or null",
+            )
+        )
+    blocked = item.get("promotion_blocked")
+    if blocked is not None and not isinstance(blocked, bool):
+        issues.append(Issue(f"{branch_path}.promotion_blocked", "expected boolean"))
+    counterexample = item.get("counterexample_ref")
+    if counterexample is not None and (
+        not isinstance(counterexample, str) or not counterexample.strip()
+    ):
+        issues.append(
+            Issue(
+                f"{branch_path}.counterexample_ref", "expected non-empty string or null"
+            )
+        )
+    if encoding in SURROGATE_ENCODINGS and blocked is not True:
+        issues.append(
+            Issue(
+                f"{branch_path}.promotion_blocked",
+                "a surrogate encoding that matches a fixture is still unsafe to promote "
+                "generally; expected promotion_blocked=true (fixture-match is not "
+                "encoding-soundness)",
+            )
+        )
+    if blocked is True and not (
+        isinstance(counterexample, str) and counterexample.strip()
+    ):
+        issues.append(
+            Issue(
+                f"{branch_path}.counterexample_ref",
+                "a promotion_blocked branch must cite the refuting counterexample",
+            )
+        )
 
 
 def _validate_gap(item: dict[str, Any], branch_path: str, issues: list[Issue]) -> None:

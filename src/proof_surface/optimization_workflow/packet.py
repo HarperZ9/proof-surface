@@ -23,6 +23,7 @@ from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
 from ._boundary_gate import validate_boundary
 from ._branches import validate_solver_branches
+from ._encoding import CONSTRAINT_ENCODINGS, SURROGATE_ENCODINGS
 
 PACKET_VERSION = "optimization-workflow-proof-packet/v0"
 
@@ -31,19 +32,6 @@ SENSES = {"maximize", "minimize"}
 SOLVER_METHODS = {"exact", "simulated", "hardware", "heuristic"}
 SOLVER_STATUSES = {"COMPLETED", "NOT_RUN", "FAILED"}
 CONSTRAINT_STATUSES = {"satisfied", "violated", "unknown"}
-# How each constraint was encoded for the solver (pass 0101 adapter requirement).
-CONSTRAINT_ENCODINGS = {
-    "exact",
-    "inequality_native",
-    "equality_native",
-    "slack_variable",
-    "penalty",
-    "equality_penalty",
-    "externally_enforced",
-}
-# Surrogate encodings that can present an infeasible optimum as solved: they may
-# not self-certify feasibility without an independent check (pass 0101).
-SURROGATE_ENCODINGS = {"penalty", "equality_penalty"}
 
 ROOT_FIELDS = {
     "version",
