@@ -1,8 +1,8 @@
-# Agent-Action Proof Packet `demo-write`
+# Agent-Action Proof Packet `reverify`
 
-**Verdict: MATCH** -- The agent wrote /work/config.json under grant grant-fs-write-work; the write was admitted and verified.
+**Verdict: MATCH** -- verify
 
-- **Scope:** One filesystem write under /work; the plan step is read-only; network excluded.
+- **Scope:** verify
 - **Sources:** 1 - **Actions:** 1 - **Flagged/uncertain:** 0
 
 ## Trace vs Receipt

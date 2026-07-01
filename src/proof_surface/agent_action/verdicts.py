@@ -20,24 +20,11 @@ The mapping from admission + effect evidence to a measurement:
 
 from __future__ import annotations
 
-import math
 from typing import Any
 
+from .._verdict import combine_overall, verdict_for_measurement
+
 _TOLERANCE = 0.5
-
-MATCH = "MATCH"
-DRIFT = "DRIFT"
-UNVERIFIABLE = "UNVERIFIABLE"
-
-
-def verdict_for_measurement(deviation: float | None, tolerance: float) -> str:
-    """Pure verdict rule, faithful to crucible.verdict_for."""
-    if deviation is None or not math.isfinite(deviation) or deviation < 0:
-        return UNVERIFIABLE
-    if tolerance is None or tolerance <= 0:
-        return UNVERIFIABLE
-    margin = (tolerance - deviation) / tolerance
-    return MATCH if margin >= 0 else DRIFT
 
 
 def _by_action_id(entries: Any) -> dict[str, dict[str, Any]]:
@@ -99,14 +86,6 @@ def _iter_measured_actions(packet: dict[str, Any]):
         yield action, m
 
 
-def _combine(statuses: list[str]) -> str:
-    if UNVERIFIABLE in statuses:
-        return UNVERIFIABLE
-    if DRIFT in statuses:
-        return DRIFT
-    return MATCH  # empty (no material action) reads as MATCH: nothing to refute
-
-
 def attach_verdicts(packet: dict[str, Any]) -> dict[str, Any]:
     """Return a copy of the packet with its verdict layer computed."""
     per_action = []
@@ -117,7 +96,7 @@ def attach_verdicts(packet: dict[str, Any]) -> dict[str, Any]:
         per_action.append({"action_id": action.get("action_id"), "status": status})
 
     result = dict(packet)
-    result["verdicts"] = {"overall": _combine(statuses), "per_action": per_action}
+    result["verdicts"] = {"overall": combine_overall(statuses), "per_action": per_action}
     return result
 
 
