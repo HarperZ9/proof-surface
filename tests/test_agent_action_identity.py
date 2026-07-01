@@ -22,7 +22,10 @@ _AUTH = {
     "principal": {"id": "user:zain"},
     "agent": {"id": "agent:claude"},
     "intent": "write",
-    "scope": {"allowed_actions": ["fs.write"], "allowed_targets": ["/work/config.json"]},
+    "scope": {
+        "allowed_actions": ["fs.write"],
+        "allowed_targets": ["/work/config.json"],
+    },
     "granted_at": "2020-01-01T00:00:00+00:00",
     "expires_at": "2999-01-01T00:00:00+00:00",
     "revoked": False,

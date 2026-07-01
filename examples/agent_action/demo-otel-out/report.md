@@ -1,8 +1,8 @@
 # Agent-Action Proof Packet `demo-otel`
 
-**Verdict: MATCH** -- The agent wrote /work/config.json under grant grant-fs-write-work (from an OTel export).
+**Verdict: MATCH** -- demo
 
-- **Scope:** One filesystem write; network excluded.
+- **Scope:** demo
 - **Sources:** 1 - **Actions:** 1 - **Flagged/uncertain:** 0
 
 ## Trace vs Receipt
