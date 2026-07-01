@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .._boundary import render_boundary
 from .._decision import render_decision_summary
 
 
@@ -49,6 +50,7 @@ def render_report(packet: dict[str, Any]) -> str:
         "_Default-deny: a model is promoted only if the overall verdict is MATCH. "
         "The verdict is re-derivable via crucible from the emitted thesis + measurements._"
     )
+    lines.extend(render_boundary())
     return "\n".join(lines)
 
 
