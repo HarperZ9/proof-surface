@@ -34,6 +34,7 @@ _TRACE_VS_RECEIPT = """## Trace vs Receipt
 | Action | tool spans -- what ran | actor, target, and a content-addressed span digest |
 | Admission | (nothing) | allow / deny / needs-human, the grant it was checked against, and the reason |
 | Side effect | (nothing) | class, idempotency key, compensation / rollback, before -> after digest |
+| Provenance | one vendor's spans | preserved trace / eval / model / runtime refs to the incumbent systems |
 | Verification | (nothing) | a re-derivable MATCH / DRIFT / UNVERIFIABLE verdict |
 """
 
@@ -56,6 +57,7 @@ def render_report(packet: dict[str, Any]) -> str:
     lines.extend(["", "## Actions", ""])
     lines.extend(_render_actions(packet))
     lines.extend(_render_outputs(packet.get("outputs")))
+    lines.extend(_render_evidence_refs(packet.get("evidence_refs")))
     lines.extend(_render_list("Uncertainty", packet.get("uncertainty")))
     lines.append("")
     lines.append(
@@ -129,6 +131,22 @@ def _render_outputs(outputs: Any) -> list[str]:
                 out.append(f"- `{o.get('name')}` -- {_short(o.get('sha256'))}")
     else:
         out.append("_none_")
+    out.append("")
+    return out
+
+
+def _render_evidence_refs(evidence_refs: Any) -> list[str]:
+    if not isinstance(evidence_refs, dict) or not evidence_refs:
+        return []
+    out = ["## Evidence references", ""]
+    for bucket in ("trace_refs", "eval_refs", "model_refs", "runtime_refs"):
+        entries = evidence_refs.get(bucket)
+        if not isinstance(entries, list) or not entries:
+            continue
+        refs = ", ".join(
+            f"`{e.get('ref')}`" for e in entries if isinstance(e, dict) and e.get("ref")
+        )
+        out.append(f"- **{bucket}:** {refs}")
     out.append("")
     return out
 
