@@ -22,6 +22,7 @@ from .._validate import Issue, reject_unknown, require_const, require_enum, requ
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
 from ._boundary_gate import validate_boundary
+from ._branches import validate_solver_branches
 
 PACKET_VERSION = "optimization-workflow-proof-packet/v0"
 
@@ -41,6 +42,7 @@ ROOT_FIELDS = {
     "candidate_space",
     "baseline",
     "solver",
+    "solver_branches",
     "boundary",
     "verdicts",
     "uncertainty",
@@ -86,6 +88,7 @@ def validate_optimization_workflow_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_candidate_space(data.get("candidate_space"), issues)
     _validate_baseline(data.get("baseline"), issues)
     _validate_solver(data.get("solver"), issues)
+    validate_solver_branches(data.get("solver_branches"), issues)
     validate_boundary(data.get("boundary"), data.get("solver"), issues)
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)

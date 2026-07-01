@@ -55,6 +55,7 @@ def render_report(packet: dict[str, Any]) -> str:
             "(an exact/toy solve claims neither hardware execution nor quantum advantage)",
         ]
     )
+    lines.extend(_render_branches(packet.get("solver_branches")))
     lines.extend(_render_list("Uncertainty", packet.get("uncertainty")))
     lines.append("")
     lines.append(
@@ -64,6 +65,21 @@ def render_report(packet: dict[str, Any]) -> str:
     )
     lines.extend(render_boundary())
     return "\n".join(lines)
+
+
+def _render_branches(branches: Any) -> list[str]:
+    if not isinstance(branches, list) or not branches:
+        return []
+    out = ["", "## Comparison branches", ""]
+    for b in branches:
+        if not isinstance(b, dict):
+            continue
+        out.append(
+            f"- `{b.get('branch_id')}` ({b.get('method')}) -- {b.get('status')}; "
+            f"objective {b.get('objective_value')}; vs baseline "
+            f"{b.get('baseline_match')}"
+        )
+    return out
 
 
 def _render_list(title: str, items: Any) -> list[str]:
