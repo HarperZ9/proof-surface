@@ -53,6 +53,19 @@ def render_report(packet: dict[str, Any]) -> str:
             "verifier._",
         ]
     )
+    boundary = packet.get("boundary_fixture")
+    if isinstance(boundary, dict):
+        lines.extend(
+            [
+                "",
+                "## Boundary fixture (sufficient, not necessary)",
+                "",
+                f"- {boundary.get('description')}: goal_holds="
+                f"{boundary.get('goal_holds')}, condition_holds="
+                f"{boundary.get('condition_holds')} -- the goal is reached without the "
+                "claimed condition, so the condition is sufficient but not necessary.",
+            ]
+        )
     lines.extend(render_boundary())
     return "\n".join(lines)
 

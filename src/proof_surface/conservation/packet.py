@@ -20,7 +20,7 @@ from .._decision import validate_decision_summary
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
-from ._gates import validate_negative_fixture
+from ._gates import validate_boundary_fixture, validate_negative_fixture
 
 PACKET_VERSION = "conservation-proof-packet/v0"
 
@@ -37,6 +37,7 @@ ROOT_FIELDS = {
     "invariant",
     "witnesses",
     "negative_fixture",
+    "boundary_fixture",
     "verdicts",
     "uncertainty",
     "decision_summary",
@@ -72,6 +73,7 @@ def validate_conservation_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_invariant(data.get("invariant"), issues)
     _validate_witnesses(data.get("witnesses"), issues)
     validate_negative_fixture(data.get("negative_fixture"), issues)
+    validate_boundary_fixture(data.get("boundary_fixture"), issues)
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)
     validate_decision_summary(

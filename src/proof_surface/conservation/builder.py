@@ -43,10 +43,11 @@ def build_conservation_packet(
     claim: str,
     scope: str,
     packet_id: str,
+    boundary_fixture: dict[str, Any] | None = None,
     uncertainty: list[str] | None = None,
 ) -> dict[str, Any]:
     overall = _derive_verdict(witnesses)
-    return {
+    packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
         "claim": claim,
@@ -60,6 +61,9 @@ def build_conservation_packet(
         "uncertainty": list(uncertainty or []),
         "decision_summary": derive_decision_summary(overall),
     }
+    if boundary_fixture is not None:
+        packet["boundary_fixture"] = dict(boundary_fixture)
+    return packet
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
