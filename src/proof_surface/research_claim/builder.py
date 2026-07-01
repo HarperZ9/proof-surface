@@ -36,6 +36,7 @@ def build_research_claim_packet(
     packet_id: str,
     uncertainty: list[str] | None = None,
     promotion: str | None = None,
+    formal: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     per_check: list[dict[str, Any]] = []
     statuses: list[str] = []
@@ -77,6 +78,7 @@ def build_research_claim_packet(
             if overall == "UNVERIFIABLE"
             else None,
         ),
+        **({"formal": formal} if formal is not None else {}),
     }
 
 
