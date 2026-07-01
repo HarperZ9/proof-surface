@@ -14,6 +14,7 @@ from typing import Any
 from .._validate import Issue, reject_unknown, require_text
 
 NEGATIVE_FIXTURE_FIELDS = {"description", "drift", "tolerance", "breaks_invariant"}
+BOUNDARY_FIXTURE_FIELDS = {"description", "goal_holds", "condition_holds"}
 
 
 def _is_number(value: Any) -> bool:
@@ -48,5 +49,41 @@ def validate_negative_fixture(value: Any, issues: list[Issue]) -> None:
                 path,
                 "breaks_invariant is true but drift is within tolerance -- the negative "
                 "fixture does not actually break the invariant",
+            )
+        )
+
+
+def validate_boundary_fixture(value: Any, issues: list[Issue]) -> None:
+    """Optional: proves the claimed condition is sufficient but NOT necessary.
+
+    A boundary fixture must show the goal holding while the claimed condition
+    fails (pass 0108: a stationary-but-not-reversible chain). That forbids a
+    "condition <=> goal" overclaim when only "condition => goal" is witnessed.
+    """
+    if value is None:
+        return
+    path = "$.boundary_fixture"
+    if not isinstance(value, dict):
+        issues.append(Issue(path, "expected object"))
+        return
+    reject_unknown(value, path, BOUNDARY_FIXTURE_FIELDS, issues)
+    require_text(value, "description", issues, f"{path}.description")
+    for flag in ("goal_holds", "condition_holds"):
+        if not isinstance(value.get(flag), bool):
+            issues.append(Issue(f"{path}.{flag}", "expected boolean"))
+    if value.get("goal_holds") is not True:
+        issues.append(
+            Issue(
+                f"{path}.goal_holds",
+                "a boundary fixture must show the goal HOLDING (else it is a negative "
+                "case, not a sufficiency boundary)",
+            )
+        )
+    if value.get("condition_holds") is not False:
+        issues.append(
+            Issue(
+                f"{path}.condition_holds",
+                "a boundary fixture must show the claimed condition FAILING, to prove "
+                "the condition is sufficient but not necessary",
             )
         )

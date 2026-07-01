@@ -60,6 +60,7 @@ def main(argv: list[str] | None = None) -> int:
         claim=args.claim,
         scope=args.scope,
         packet_id=args.packet_id,
+        boundary_fixture=spec.get("boundary_fixture"),
         uncertainty=spec.get("uncertainty"),
     )
     issues = validate_conservation_packet(packet)
