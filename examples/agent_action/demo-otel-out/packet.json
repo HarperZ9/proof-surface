@@ -1,8 +1,8 @@
 {
   "version": "agent-action-proof-packet/v0",
   "packet_id": "demo-otel",
-  "claim": "The agent wrote /work/config.json under grant grant-fs-write-work (from an OTel export).",
-  "scope": "One filesystem write; network excluded.",
+  "claim": "demo",
+  "scope": "demo",
   "sources": [
     {
       "ref": "trace:4bf92f3577b34da6a3ce929d0e0e4736",
