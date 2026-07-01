@@ -26,7 +26,10 @@ def test_raw_store_roundtrips_by_digest_for_replay():
 
 
 def test_clean_artifact_has_zero_leaks():
-    artifact = {"packet_id": "p", "sources": [{"ref": redaction.redact(_SECRET)["ref"]}]}
+    artifact = {
+        "packet_id": "p",
+        "sources": [{"ref": redaction.redact(_SECRET)["ref"]}],
+    }
     assert redaction.scan_for_leaks(artifact, secrets=[_SECRET]) == []
     assert redaction.leak_count(artifact, secrets=[_SECRET]) == 0
 

@@ -21,6 +21,7 @@ from typing import Any
 from .builder import build_agent_action_packet
 from .packet import validate_agent_action_packet
 from .._bundle import write_receipts
+from .._crucible_peer import write_peer_assessment
 from .report import render_report
 from .verdicts import attach_verdicts, to_crucible_inputs
 
@@ -105,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(measurements, indent=2), encoding="utf-8"
     )
 
+    write_peer_assessment(out, thesis, measurements)
     write_receipts(out, domain="agent-action", packet_id=args.packet_id)
     print(report)
     if issues:

@@ -16,6 +16,7 @@ from typing import Any
 from .builder import build_visual_measurement_packet, to_crucible_inputs
 from .packet import validate_visual_measurement_packet
 from .._bundle import write_receipts
+from .._crucible_peer import write_peer_assessment
 from .report import render_report
 
 
@@ -75,6 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(measurements, indent=2), encoding="utf-8"
     )
 
+    write_peer_assessment(out, thesis, measurements)
     write_receipts(out, domain="visual-measurement", packet_id=args.packet_id)
     print(report)
     if issues:
