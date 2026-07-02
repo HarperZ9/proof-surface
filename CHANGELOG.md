@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Added wedge #11 `competition_attempt` (the SAIR competition/judge lane): a
+  single competition attempt binds the challenge to a source-pinned
+  `judge_repo` observation (repo ref, 40-hex head sha, observed file count,
+  files digest), discloses hosted-model usage with the eval-attempt
+  hermeticity rule verbatim, records how the answer was extracted (a non-boxed
+  method must record an injection check; an unrendered template marker is
+  rejected), and carries a closed certificate ladder (informal-model-output,
+  machine-checked-proof, finite-counterexample, judge-verdict). A fenced layer
+  must cite the probe that proved the fence and may not carry a pass/fail
+  result; the overall verdict may only cite EXECUTED layers; `MATCH` is only
+  derivable from an EXECUTED, passing judge verdict, so a passing verdict with
+  zero executed layers is impossible by construction. Grounded in dogfood
+  passes 0136/0137/0138/0139; routed through `telos-proof competition-attempt`
+  and covered by the family negative-fixture conformance gate.
+
 - eval_attempt hermeticity disclosure (dogfood 0137/0138, SAIR cluster):
   optional `attempt.external_model_calls` + `attempt.provider_receipt_ref`.
   When the attempt discloses its hosted-model usage the claim must be

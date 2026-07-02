@@ -41,6 +41,7 @@ proof-surface-eval-attempt = "proof_surface.eval_attempt.cli:main"
 proof-surface-ai4science = "proof_surface.ai4science.cli:main"
 proof-surface-conservation = "proof_surface.conservation.cli:main"
 proof-surface-control-certificate = "proof_surface.control_certificate.cli:main"
+proof-surface-competition-attempt = "proof_surface.competition_attempt.cli:main"
 
 [tool.pytest.ini_options]
 addopts = "-q"
