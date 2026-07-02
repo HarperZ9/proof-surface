@@ -26,9 +26,7 @@ def _packet(evidence_classes=None, promotion=None):
     packet = build_research_claim_packet(
         statement="for all n >= 1, sum_{k=1}^n k = n(n+1)/2",
         sources=[{"ref": "probe log", "sha256": _HEX}],
-        attempts=[
-            {"attempt_id": "a1", "method": "numeric-probe", "result": "bounded"}
-        ],
+        attempts=[{"attempt_id": "a1", "method": "numeric-probe", "result": "bounded"}],
         checks=[
             {"checker": "numeric-probe", "status": "pass", "evidence": ["n=1..1000"]}
         ],

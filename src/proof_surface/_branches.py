@@ -45,9 +45,7 @@ def validate_declared_branches(
         branch_id = item.get("branch_id")
         if isinstance(branch_id, str) and branch_id.strip():
             if branch_id in seen_ids:
-                issues.append(
-                    Issue(f"{branch_path}.branch_id", "duplicate branch_id")
-                )
+                issues.append(Issue(f"{branch_path}.branch_id", "duplicate branch_id"))
             seen_ids.add(branch_id)
         _validate_branch_claims(item, branch_path, issues)
 
