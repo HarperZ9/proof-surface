@@ -309,6 +309,7 @@ def _control_certificate_valid():
             "tolerance": 1e-6,
             "violates_certificate": True,
         },
+        trajectory={"log_sha256": _HEX, "samples": 500},
         claim="c",
         scope="s",
         packet_id="ctrl",
@@ -332,6 +333,10 @@ _CONTROL_CERTIFICATE_MUTATIONS = {
     "unknown-certificate-kind": _mut(
         lambda p: p["certificate"].update({"kind": "vibes"})
     ),
+    "conflated-provenance": _mut(
+        lambda p: p["certificate"].update({"provenance": "blessed"})
+    ),
+    "drop-trajectory-binding": _mut(lambda p: p.pop("trajectory", None)),
 }
 
 

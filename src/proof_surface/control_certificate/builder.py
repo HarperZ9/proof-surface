@@ -41,6 +41,7 @@ def build_control_certificate_packet(
     certificate: dict[str, Any],
     witnesses: list[dict[str, Any]],
     negative_fixture: dict[str, Any],
+    trajectory: dict[str, Any],
     claim: str,
     scope: str,
     packet_id: str,
@@ -49,6 +50,10 @@ def build_control_certificate_packet(
     failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     overall = _derive_verdict(witnesses)
+    declared_certificate = dict(certificate)
+    # Fail-closed provenance: an undeclared certificate origin is the weakest
+    # tier (author-asserted), never an upgrade to synthesized or verified.
+    declared_certificate.setdefault("provenance", "author-asserted")
     packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
@@ -56,9 +61,10 @@ def build_control_certificate_packet(
         "scope": scope,
         "sources": [dict(s) for s in sources],
         "system": dict(system),
-        "certificate": dict(certificate),
+        "certificate": declared_certificate,
         "witnesses": [dict(w) for w in witnesses],
         "negative_fixture": dict(negative_fixture),
+        "trajectory": dict(trajectory),
         "sim_to_real": dict(sim_to_real)
         if sim_to_real is not None
         else {"hardware_validity_claim": False, "hardware_evidence": []},
