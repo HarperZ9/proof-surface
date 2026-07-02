@@ -56,6 +56,7 @@ def build_ai4science_packet(
     packet_id: str,
     uncertainty: list[str] | None = None,
     failure_labels: list[str] | None = None,
+    replication: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     has_open = _has_open_objection(reviewer_objections)
     promotion = _derive_promotion(measurement, reproduction, has_open)
@@ -81,6 +82,8 @@ def build_ai4science_packet(
     }
     if failure_labels is not None:
         packet["failure_labels"] = list(failure_labels)
+    if replication is not None:
+        packet["replication"] = replication
     return packet
 
 
