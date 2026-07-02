@@ -58,6 +58,7 @@ def main(argv: list[str] | None = None) -> int:
         scope=args.scope,
         packet_id=args.packet_id,
         uncertainty=spec.get("uncertainty"),
+        replication=spec.get("replication"),
     )
     issues = validate_model_eval_packet(packet)
 

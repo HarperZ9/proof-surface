@@ -240,6 +240,13 @@ def _ai4science_valid():
         claim="c",
         scope="s",
         packet_id="a4s",
+        replication={
+            "instances": [
+                {"instance_id": "lab-a", "verdict": "MATCH"},
+                {"instance_id": "lab-b", "verdict": "MATCH", "warnings": ["site 2"]},
+            ],
+            "generalization_claim": True,
+        },
     )
 
 
@@ -260,6 +267,17 @@ _AI4SCIENCE_MUTATIONS = {
     ),
     "bad-reproduction-status": _mut(
         lambda p: p["reproduction"].update({"status": "maybe"})
+    ),
+    "generalization-claim-one-instance": _mut(
+        lambda p: p["replication"].update(
+            {"instances": [{"instance_id": "lab-a", "verdict": "MATCH"}]}
+        )
+    ),
+    "generalization-claim-drift-instance": _mut(
+        lambda p: p["replication"]["instances"][1].update({"verdict": "DRIFT"})
+    ),
+    "malformed-instance-verdict": _mut(
+        lambda p: p["replication"]["instances"][0].update({"verdict": "maybe"})
     ),
 }
 
