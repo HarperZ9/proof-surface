@@ -95,6 +95,7 @@ telos-proof <domain> --input run.json --claim "..." --scope "..." --out ./artifa
 | `eval-attempt` | a single benchmark attempt | a `correct` outcome with ground-truth access is contamination, not a pass |
 | `ai4science` | a claim-to-experiment run | reject an unmeasured discovery claim; require independent reproduction; require human review before a peer-reviewed rung |
 | `conservation` | a transformation + a declared invariant | the check must carry a negative fixture that provably breaks the invariant: a verifier that cannot fail on a known-bad input is not a verifier |
+| `control-certificate` | a stability / feasibility claim + a declared certificate | a certificate kind must witness its defining conditions; the fixture must provably violate it; hardware validity is never claimable from simulation-only evidence |
 
 Every wedge is optional and zero-dependency, and treats crucible as an optional
 peer: it embeds a verdict by default and also emits a thesis plus measurements so
