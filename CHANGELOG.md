@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- eval_attempt hermeticity disclosure (dogfood 0137/0138, SAIR cluster):
+  optional `attempt.external_model_calls` + `attempt.provider_receipt_ref`.
+  When the attempt discloses its hosted-model usage the claim must be
+  evidence-consistent: a hermetic claim (0 calls) citing a provider receipt is
+  a contradiction; a nonzero count without a receipt reference is rejected
+  (redacted evidence is admissible, absence is not); a receipt without a
+  disclosed count is rejected as undisclosed external usage. Undisclosed
+  legacy packets validate unchanged.
+
 - Added wedge #10 `control_certificate` (the robotics/cybernetics lane): a
   stability, termination, or convergence claim carries a declared certificate
   (lyapunov, ranking-function, contraction-metric, mpc-feasibility), witnessed
