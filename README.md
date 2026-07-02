@@ -17,7 +17,7 @@ python -m pytest -q
 
 AI workflow records are only useful if another tool can validate their shape. Proof Surface defines small stdlib-only contracts for evidence packets, work receipts, gates, ledgers, delegation chains, and witness receipts so review tools can reject malformed or authority-shaped records.
 
-On top of that base sits a family of nine **domain proof-packet wedges**: each takes evidence a tool already produces (an agent trace, a color measurement, a benchmark attempt, a solver run, a scientific claim) and turns it into a validated, re-derivable packet that carries a `MATCH` / `DRIFT` / `UNVERIFIABLE` verdict and refuses to overclaim. Every wedge enforces a domain-specific honesty gate, and all nine reach a buyer through one seam: `telos-proof <domain>`.
+On top of that base sits a family of eleven **domain proof-packet wedges**: each takes evidence a tool already produces (an agent trace, a color measurement, a benchmark attempt, a solver run, a scientific claim) and turns it into a validated, re-derivable packet that carries a `MATCH` / `DRIFT` / `UNVERIFIABLE` verdict and refuses to overclaim. Every wedge enforces a domain-specific honesty gate, and all eleven reach a buyer through one seam: `telos-proof <domain>`.
 
 ## What to test first
 
@@ -28,7 +28,7 @@ On top of that base sits a family of nine **domain proof-packet wedges**: each t
 ## Current status
 
 - **Runtime:** Python 3.11+; stdlib-only core.
-- **Surface:** Python API and contract-validator library for evidence packets, receipts, gates, ledgers, delegation chains, and witness receipts, plus nine domain proof-packet wedges and incumbent trace/eval adapters, all routed through the `telos-proof` CLI.
+- **Surface:** Python API and contract-validator library for evidence packets, receipts, gates, ledgers, delegation chains, and witness receipts, plus eleven domain proof-packet wedges and incumbent trace/eval adapters, all routed through the `telos-proof` CLI.
 - **Verification:** the pytest suite is the conformance surface for the current contracts.
 - **Boundary:** Proof Surface validates records. It does not grant authority, execute actions, or store private payloads.
 
@@ -73,7 +73,7 @@ extended, not opened.
 
 ## Proof-packet wedges
 
-Nine domain wedges turn evidence a tool already produces into a validated,
+Eleven domain wedges turn evidence a tool already produces into a validated,
 re-derivable proof packet. Each wedge is a validator plus a builder, a
 reviewer-facing report, and a CLI; they share one spine (a crucible-faithful
 `MATCH` / `DRIFT` / `UNVERIFIABLE` verdict rule, a required decision summary, a
@@ -96,6 +96,7 @@ telos-proof <domain> --input run.json --claim "..." --scope "..." --out ./artifa
 | `ai4science` | a claim-to-experiment run | reject an unmeasured discovery claim; require independent reproduction; require human review before a peer-reviewed rung |
 | `conservation` | a transformation + a declared invariant | the check must carry a negative fixture that provably breaks the invariant: a verifier that cannot fail on a known-bad input is not a verifier |
 | `control-certificate` | a stability / feasibility claim + a declared certificate | a certificate kind must witness its defining conditions; the fixture must provably violate it; hardware validity is never claimable from simulation-only evidence |
+| `competition-attempt` | a competition / judge attempt | the judge repo is source-pinned; the verdict may only cite certificate layers that EXECUTED; `MATCH` needs an executed, passing judge verdict; a non-boxed extraction must record an injection check |
 
 Every wedge is optional and zero-dependency, and treats crucible as an optional
 peer: it embeds a verdict by default and also emits a thesis plus measurements so

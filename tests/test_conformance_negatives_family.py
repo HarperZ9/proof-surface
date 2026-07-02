@@ -1,7 +1,7 @@
-"""Negative-fixture conformance gate for wedges 5-9: verification is not theater.
+"""Negative-fixture conformance gate for wedges 5-11: verification is not theater.
 
 The research's own principle -- a verifier that cannot fail on a known-bad input
-is not a verifier -- applied to our five newest verifiers. Same shape as
+is not a verifier -- applied to our newest verifiers. Same shape as
 test_conformance_negatives.py: a valid packet per wedge plus a catalog of
 mutations that MUST each be rejected; negative_pass_observed_count == 0.
 """

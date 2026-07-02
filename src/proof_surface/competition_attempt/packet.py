@@ -200,8 +200,7 @@ def _validate_hermeticity(value: dict[str, Any], issues: list[Issue]) -> None:
             issues.append(
                 Issue(
                     "$.attempt.external_model_calls",
-                    "a provider receipt requires a disclosed external model "
-                    "call count",
+                    "a provider receipt requires a disclosed external model call count",
                 )
             )
         return

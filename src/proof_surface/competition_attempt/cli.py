@@ -30,8 +30,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="telos proof competition-attempt",
         description=(
-            "Turn a competition/judge attempt into a competition-attempt "
-            "proof packet."
+            "Turn a competition/judge attempt into a competition-attempt proof packet."
         ),
     )
     p.add_argument(
