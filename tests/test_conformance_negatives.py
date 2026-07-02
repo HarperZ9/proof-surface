@@ -153,6 +153,49 @@ _RESEARCH_MUTATIONS = {
     "promoted-law": _mut(lambda p: p.update({"promotion": "PROMOTED_LAW"})),
     "source-without-ref": _mut(lambda p: p.update({"sources": [{"url": "https://x"}]})),
     "bad-check-status": _mut(lambda p: p["checks"][0].update({"status": "definitely"})),
+    "fenced-branch-claims-verdict": _mut(
+        lambda p: p.update(
+            {
+                "declared_branches": [
+                    {
+                        "branch_id": "lean-kernel",
+                        "status": "UNAVAILABLE_FENCED",
+                        "verdict": "MATCH",
+                        "probe_evidence": "lake build failed: toolchain missing",
+                    }
+                ]
+            }
+        )
+    ),
+    "promotion-cites-fenced-branch": _mut(
+        lambda p: p.update(
+            {
+                "declared_branches": [
+                    {
+                        "branch_id": "lean-kernel",
+                        "status": "UNAVAILABLE_FENCED",
+                        "probe_evidence": "lake build failed: toolchain missing",
+                    }
+                ],
+                "claim": "the lean-kernel branch confirmed the identity",
+            }
+        )
+    ),
+    "tier-inflated-promotion": _mut(
+        # Base packet derives CRUCIBLE_MATCH; only a numeric probe ran.
+        lambda p: p.update(
+            {
+                "witness_tier": {
+                    "declared_target_verifier": "kernel-proof",
+                    "strongest_executed_tier": "numeric-probe",
+                    "target_slot_status": "NOT_EXECUTED_FENCED",
+                }
+            }
+        )
+    ),
+    "single-modality-fact-promotion": _mut(
+        lambda p: p.update({"evidence_classes": ["single-modality-derived"]})
+    ),
 }
 
 

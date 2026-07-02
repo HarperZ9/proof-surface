@@ -113,6 +113,34 @@ _OPTIMIZATION_MUTATIONS = {
             }
         )
     ),
+    "fenced-declared-branch-with-verdict": _mut(
+        lambda p: p.update(
+            {
+                "declared_branches": [
+                    {
+                        "branch_id": "dwave-sampler",
+                        "status": "UNAVAILABLE_FENCED",
+                        "verdict": "MATCH",
+                        "probe_evidence": "import dwave.sampler failed",
+                    }
+                ]
+            }
+        )
+    ),
+    "summary-cites-fenced-declared-branch": _mut(
+        lambda p: p.update(
+            {
+                "declared_branches": [
+                    {
+                        "branch_id": "dwave-sampler",
+                        "status": "UNAVAILABLE_FENCED",
+                        "probe_evidence": "import dwave.sampler failed",
+                    }
+                ],
+                "claim": "dwave-sampler matched the exact baseline",
+            }
+        )
+    ),
 }
 
 
