@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- N-instance replication gate (dogfood 0145), one more optional disclosure field
+  shared across the family and wired into `model_eval` and `ai4science` first:
+  - `replication` (an object `{instances: [{instance_id, verdict, warnings?}],
+    generalization_claim}`): a single-instance `MATCH` is never a
+    generalization/scale claim. When `generalization_claim` is true the gate
+    (shared helper `proof_surface._replication`) requires two or more instances
+    AND every instance verdict `== MATCH`; a generalization claim with fewer
+    than two instances, or with any non-`MATCH` instance, is rejected, and a
+    malformed instance verdict enum is rejected. Per-instance warnings are
+    preserved, never dropped. The field is optional; legacy packets without it
+    validate unchanged. Covered by a dedicated gate test, wedge validator tests,
+    and the family negative-fixture conformance gate.
 - Family evidence gates (dogfood 0115/0117/0126), three optional disclosure
   fields that stay honest under scrutiny:
   - `declared_branches[]` (branch matrix, wired into `optimization_workflow`

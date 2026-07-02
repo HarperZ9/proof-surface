@@ -116,3 +116,58 @@ def test_authority_language_rejected():
     d = _valid()
     d["claim"] = "This model is CERTIFIED production-ready."
     assert validate_model_eval_packet(d) != []
+
+
+def test_legacy_packet_without_replication_validates():
+    d = _valid()
+    assert "replication" not in d
+    assert validate_model_eval_packet(d) == []
+
+
+def test_two_match_instances_with_generalization_claim_validates():
+    d = _valid()
+    d["replication"] = {
+        "instances": [
+            {"instance_id": "eval-a", "verdict": "MATCH"},
+            {
+                "instance_id": "eval-b",
+                "verdict": "MATCH",
+                "warnings": ["seed differed"],
+            },
+        ],
+        "generalization_claim": True,
+    }
+    assert validate_model_eval_packet(d) == []
+
+
+def test_generalization_claim_with_one_instance_rejected():
+    d = _valid()
+    d["replication"] = {
+        "instances": [{"instance_id": "eval-a", "verdict": "MATCH"}],
+        "generalization_claim": True,
+    }
+    issues = validate_model_eval_packet(d)
+    assert any("generalization_claim" in p for p in _paths(issues))
+
+
+def test_generalization_claim_with_drift_instance_rejected():
+    d = _valid()
+    d["replication"] = {
+        "instances": [
+            {"instance_id": "eval-a", "verdict": "MATCH"},
+            {"instance_id": "eval-b", "verdict": "DRIFT"},
+        ],
+        "generalization_claim": True,
+    }
+    assert any(
+        "generalization_claim" in p for p in _paths(validate_model_eval_packet(d))
+    )
+
+
+def test_malformed_instance_verdict_enum_rejected():
+    d = _valid()
+    d["replication"] = {
+        "instances": [{"instance_id": "eval-a", "verdict": "maybe"}],
+        "generalization_claim": False,
+    }
+    assert any("verdict" in p for p in _paths(validate_model_eval_packet(d)))

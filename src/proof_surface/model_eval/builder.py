@@ -43,6 +43,7 @@ def build_model_eval_packet(
     packet_id: str,
     uncertainty: list[str] | None = None,
     failure_labels: list[str] | None = None,
+    replication: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     norm_metrics: list[dict[str, Any]] = []
     per_metric: list[dict[str, Any]] = []
@@ -86,6 +87,8 @@ def build_model_eval_packet(
     }
     if failure_labels is not None:
         packet["failure_labels"] = list(failure_labels)
+    if replication is not None:
+        packet["replication"] = replication
     return packet
 
 

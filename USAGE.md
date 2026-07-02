@@ -131,6 +131,42 @@ assert validate_research_claim_packet(packet) == []
 `witness_tier` and `evidence_classes` are `research_claim` fields bound to its
 promotion ladder.
 
+`model_eval` and `ai4science` accept an optional `replication` object. A
+single-instance `MATCH` is never a scale claim: when `generalization_claim` is
+true, the same contract must replay across two or more independent instances and
+every instance verdict must be `MATCH`. Per-instance warnings are preserved.
+
+```python
+from proof_surface.ai4science import (
+    build_ai4science_packet,
+    validate_ai4science_packet,
+)
+
+packet = build_ai4science_packet(
+    sources=[{"ref": "arxiv:2408.06292", "sha256": "a" * 64}],
+    domain="biology",
+    scientific_claim="compound X binds target Y",
+    agent_actions=[{"action": "design assay", "tool": "benchling"}],
+    protocol={"protocol_ref": "proto:1", "reproducible": True},
+    measurement={"measured": True, "measurement_ref": "meas:1", "value": 0.4},
+    reproduction={"status": "INDEPENDENTLY_REPRODUCED"},
+    reviewer_objections=[],
+    negative_result=False,
+    claim="binding measured and reproduced across two labs",
+    scope="two independent assays",
+    packet_id="a4s-2",
+    # A scale claim needs two or more MATCH instances; warnings are kept.
+    replication={
+        "instances": [
+            {"instance_id": "lab-a", "verdict": "MATCH"},
+            {"instance_id": "lab-b", "verdict": "MATCH", "warnings": ["site 2 rig"]},
+        ],
+        "generalization_claim": True,
+    },
+)
+assert validate_ai4science_packet(packet) == []
+```
+
 ---
 
 ## Example 1 -- validate a document
