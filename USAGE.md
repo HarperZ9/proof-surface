@@ -86,6 +86,51 @@ Each CLI writes `packet.json`, a Markdown `report.md`, the crucible
 `bundle.json`. Adapters for incumbent trace/eval systems live in
 `proof_surface.trace_adapters`.
 
+### Optional family evidence gates
+
+Three optional fields let a packet disclose more of its evidence, and are held
+honest when present. Omit them and the packet validates exactly as before.
+
+```python
+from proof_surface.research_claim import (
+    build_research_claim_packet,
+    validate_research_claim_packet,
+)
+
+packet = build_research_claim_packet(
+    statement="for all n >= 1, sum_{k=1}^n k = n(n+1)/2",
+    sources=[{"ref": "probe log", "sha256": "a" * 64}],
+    attempts=[{"attempt_id": "a1", "method": "numeric-probe", "result": "bounded"}],
+    checks=[{"checker": "numeric-probe", "status": "pass", "evidence": ["n=1..1000"]}],
+    claim="the identity held under a bounded probe",
+    scope="bounded probe; not a general proof",
+    packet_id="rc-1",
+    promotion="PROBE_MATCH",
+    # A branch that did not run claims no verdict and is not citable support.
+    declared_branches=[
+        {"branch_id": "numeric", "status": "EXECUTED", "verdict": "MATCH"},
+        {
+            "branch_id": "lean-kernel",
+            "status": "UNAVAILABLE_FENCED",
+            "probe_evidence": "lake build failed: toolchain missing",
+        },
+    ],
+    # The rung may not exceed the strongest verifier tier that actually ran.
+    witness_tier={
+        "declared_target_verifier": "kernel-proof",
+        "strongest_executed_tier": "numeric-probe",
+        "target_slot_status": "NOT_EXECUTED_FENCED",
+    },
+    # Single-modality evidence caps at the hypothesis rung.
+    evidence_classes=["executable-check"],
+)
+assert validate_research_claim_packet(packet) == []
+```
+
+`declared_branches` is also accepted by `optimization_workflow`;
+`witness_tier` and `evidence_classes` are `research_claim` fields bound to its
+promotion ladder.
+
 ---
 
 ## Example 1 -- validate a document
