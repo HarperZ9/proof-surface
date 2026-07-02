@@ -59,9 +59,9 @@ from proof_surface import Issue, validate_packet
 
 ## Proof-packet wedges (the `telos-proof` CLI)
 
-Nine domain wedges live under `proof_surface.<wedge>` with a `build_*_packet`
+Eleven domain wedges live under `proof_surface.<wedge>` with a `build_*_packet`
 builder, a `validate_*_packet` validator, a `render_report`, and a
-`to_crucible_inputs` re-derivation helper. All nine also route through one CLI:
+`to_crucible_inputs` re-derivation helper. All eleven also route through one CLI:
 
 ```bash
 telos-proof <domain> --input run.json --claim "..." --scope "..." --out ./artifacts
@@ -80,6 +80,7 @@ telos-proof <domain> --input run.json --claim "..." --scope "..." --out ./artifa
 | `ai4science` | `proof_surface.ai4science` | `MATCH` once independently reproduced |
 | `conservation` | `proof_surface.conservation` | `MATCH` iff every witness conserves the invariant |
 | `control-certificate` | `proof_surface.control_certificate` | `MATCH` iff every witnessed certificate condition holds |
+| `competition-attempt` | `proof_surface.competition_attempt` | `MATCH` iff an executed, passing judge verdict, with no tier inflation |
 
 Each CLI writes `packet.json`, a Markdown `report.md`, the crucible
 `thesis`/`measurements` for independent re-derivation, and a content-addressed
