@@ -140,6 +140,11 @@ stay honest; leave them off and the packet validates unchanged.
 - `evidence_classes[]` (on `research-claim`): a fact-tier promotion requires at
   least one class that is not `single-modality-derived`; single-modality
   evidence caps at the hypothesis rung.
+- `replication` (on `model-eval` and `ai4science`): a single-instance `MATCH` is
+  never a scale claim. When `generalization_claim` is true, the same contract
+  must replay across two or more independent instances and every instance
+  verdict must be `MATCH`; fewer than two instances, or any non-`MATCH`
+  instance, is rejected. Per-instance warnings are preserved, never dropped.
 
 ## Design stance
 
