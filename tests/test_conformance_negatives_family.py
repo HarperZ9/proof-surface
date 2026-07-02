@@ -1,7 +1,7 @@
-"""Negative-fixture conformance gate for wedges 5-9: verification is not theater.
+"""Negative-fixture conformance gate for wedges 5-11: verification is not theater.
 
 The research's own principle -- a verifier that cannot fail on a known-bad input
-is not a verifier -- applied to our five newest verifiers. Same shape as
+is not a verifier -- applied to our newest verifiers. Same shape as
 test_conformance_negatives.py: a valid packet per wedge plus a catalog of
 mutations that MUST each be rejected; negative_pass_observed_count == 0.
 """
@@ -11,6 +11,10 @@ from __future__ import annotations
 import copy
 
 from proof_surface.ai4science import build_ai4science_packet, validate_ai4science_packet
+from proof_surface.competition_attempt import (
+    build_competition_attempt_packet,
+    validate_competition_attempt_packet,
+)
 from proof_surface.conservation import (
     build_conservation_packet,
     validate_conservation_packet,
@@ -340,6 +344,91 @@ _CONTROL_CERTIFICATE_MUTATIONS = {
 }
 
 
+def _competition_attempt_valid():
+    return build_competition_attempt_packet(
+        sources=[{"ref": "dogfood:pass-0136", "sha256": _HEX}],
+        challenge={
+            "challenge_ref": "challenge:sair-2026",
+            "stage": "stage-1",
+            "judge_repo": {
+                "repo_ref": "github:example/judge",
+                "head_sha": "b" * 40,
+                "observed_files": 12,
+                "files_digest": _HEX,
+            },
+        },
+        attempt={
+            "attempt_id": "att-1",
+            "model_ref": "model:m-1",
+            "external_model_calls": 0,
+        },
+        answer_extraction={
+            "method": "boxed",
+            "extracted_ref": "answers/final.txt",
+            "injection_checked": True,
+        },
+        certificate_layers=[
+            {
+                "layer": "informal-model-output",
+                "status": "EXECUTED",
+                "evidence_ref": "transcript:att-1",
+            },
+            {
+                "layer": "machine-checked-proof",
+                "status": "UNAVAILABLE_FENCED",
+                "probe_evidence": "probe:lean-toolchain-missing exit=127",
+            },
+            {
+                "layer": "judge-verdict",
+                "status": "EXECUTED",
+                "evidence_ref": "judge:run-9",
+                "passing": True,
+            },
+        ],
+        claim="c",
+        scope="s",
+        packet_id="comp",
+    )
+
+
+_COMPETITION_ATTEMPT_MUTATIONS = {
+    "forged-head-sha-shape": _mut(
+        lambda p: p["challenge"]["judge_repo"].update({"head_sha": "deadbeef"})
+    ),
+    "fenced-layer-without-probe": _mut(
+        lambda p: p["certificate_layers"][1].pop("probe_evidence", None)
+    ),
+    "tier-inflation-cites-fenced-layer": _mut(
+        lambda p: p["verdicts"]["cited_layers"].append("machine-checked-proof")
+    ),
+    "injection-unchecked-non-boxed": _mut(
+        lambda p: p["answer_extraction"].update(
+            {"method": "bare-last-line", "injection_checked": False}
+        )
+    ),
+    "unrendered-placeholder": _mut(
+        lambda p: p["answer_extraction"].update(
+            {"extracted_ref": "answers/{{answer}}.txt"}
+        )
+    ),
+    "hermetic-contradiction": _mut(
+        lambda p: p["attempt"].update({"provider_receipt_ref": "receipt:prov-1"})
+    ),
+    "match-with-zero-executed-layers": _mut(
+        lambda p: (
+            [
+                layer.update(
+                    {"status": "UNAVAILABLE_FENCED", "probe_evidence": "probe:x"}
+                )
+                or layer.pop("passing", None)
+                for layer in p["certificate_layers"]
+            ],
+            p["verdicts"].update({"cited_layers": []}),
+        )
+    ),
+}
+
+
 _DOMAINS = [
     (
         "optimization",
@@ -376,6 +465,12 @@ _DOMAINS = [
         validate_control_certificate_packet,
         _control_certificate_valid(),
         {**_CROSS, **_CONTROL_CERTIFICATE_MUTATIONS},
+    ),
+    (
+        "competition-attempt",
+        validate_competition_attempt_packet,
+        _competition_attempt_valid(),
+        {**_CROSS, **_COMPETITION_ATTEMPT_MUTATIONS},
     ),
 ]
 
