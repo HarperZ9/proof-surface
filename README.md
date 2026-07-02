@@ -123,6 +123,23 @@ calibration, a benchmark that saw the answer, a solver that matched one fixture
 with an unsound encoding, a discovery with no measurement, an invariant check
 that cannot fail) and rejects the packet when that inflation is present.
 
+### Shared family evidence gates
+
+Three optional disclosure fields ride the same spine. Declare them and they must
+stay honest; leave them off and the packet validates unchanged.
+
+- `declared_branches[]` (on `optimization-workflow` and `research-claim`): a
+  branch either `EXECUTED` and records its `MATCH`/`DRIFT`/`UNVERIFIABLE`
+  verdict, or is `UNAVAILABLE_FENCED` and carries probe evidence of the fence. A
+  fenced branch may not claim a verdict, and a claim or decision reason may not
+  cite a fenced branch as support: a branch that did not run is not evidence.
+- `witness_tier` (on `research-claim`): the promotion rung may not exceed the
+  strongest verifier tier that actually executed. If the target verifier slot
+  did not run, its tier may not be named as achieved.
+- `evidence_classes[]` (on `research-claim`): a fact-tier promotion requires at
+  least one class that is not `single-modality-derived`; single-modality
+  evidence caps at the hypothesis rung.
+
 ## Design stance
 
 - **Accountability, not authority.** Every validator rejects authority-shaped

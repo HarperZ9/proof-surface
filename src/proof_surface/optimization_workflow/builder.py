@@ -51,6 +51,7 @@ def build_optimization_workflow_packet(
     packet_id: str,
     boundary: dict[str, Any] | None = None,
     solver_branches: list[dict[str, Any]] | None = None,
+    declared_branches: list[dict[str, Any]] | None = None,
     uncertainty: list[str] | None = None,
     failure_labels: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -77,6 +78,8 @@ def build_optimization_workflow_packet(
         packet["solver_branches"] = [
             _enrich_branch(b, baseline, tolerance) for b in solver_branches
         ]
+    if declared_branches is not None:
+        packet["declared_branches"] = [dict(b) for b in declared_branches]
     if failure_labels is not None:
         packet["failure_labels"] = list(failure_labels)
     return packet

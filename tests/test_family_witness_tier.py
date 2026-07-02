@@ -56,7 +56,9 @@ def test_witness_tier_is_optional():
 
 def test_executed_target_at_matching_rung_validates():
     packet = _packet(
-        witness_tier=_tier("crucible-rederivation", "crucible-rederivation", "EXECUTED"),
+        witness_tier=_tier(
+            "crucible-rederivation", "crucible-rederivation", "EXECUTED"
+        ),
     )
     # Default derived promotion is CRUCIBLE_MATCH; the tier was actually run.
     assert validate_research_claim_packet(packet) == []
@@ -128,9 +130,7 @@ def test_executed_slot_weaker_than_target_is_contradiction():
         promotion="PROBE_MATCH",
     )
     issues = validate_research_claim_packet(packet)
-    assert any(
-        "witness_tier.strongest_executed_tier" in p for p in _paths(issues)
-    )
+    assert any("witness_tier.strongest_executed_tier" in p for p in _paths(issues))
 
 
 def test_unknown_tier_rejected():
@@ -139,9 +139,7 @@ def test_unknown_tier_rejected():
         promotion="PROBE_MATCH",
     )
     issues = validate_research_claim_packet(packet)
-    assert any(
-        "witness_tier.declared_target_verifier" in p for p in _paths(issues)
-    )
+    assert any("witness_tier.declared_target_verifier" in p for p in _paths(issues))
 
 
 def test_unknown_slot_status_rejected():

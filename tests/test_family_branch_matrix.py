@@ -70,9 +70,7 @@ def _rc(declared_branches=None, claim="the identity held under a bounded probe")
     packet = build_research_claim_packet(
         statement="for all n >= 1, sum_{k=1}^n k = n(n+1)/2",
         sources=[{"ref": "probe log", "sha256": _HEX}],
-        attempts=[
-            {"attempt_id": "a1", "method": "numeric-probe", "result": "bounded"}
-        ],
+        attempts=[{"attempt_id": "a1", "method": "numeric-probe", "result": "bounded"}],
         checks=[
             {"checker": "numeric-probe", "status": "pass", "evidence": ["n=1..1000"]}
         ],
@@ -150,9 +148,7 @@ def test_unknown_branch_field_rejected():
 def test_duplicate_branch_id_rejected():
     for name, validate, make in _WEDGES:
         issues = validate(make(declared_branches=[dict(_EXECUTED), dict(_EXECUTED)]))
-        assert any(
-            "declared_branches[1].branch_id" in p for p in _paths(issues)
-        ), name
+        assert any("declared_branches[1].branch_id" in p for p in _paths(issues)), name
 
 
 def test_claim_citing_fenced_branch_rejected():
