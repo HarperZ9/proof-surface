@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Added wedge #10 `control_certificate` (the robotics/cybernetics lane): a
+  stability, termination, or convergence claim carries a declared certificate
+  (lyapunov, ranking-function, contraction-metric, mpc-feasibility), witnessed
+  conditions with real residuals, a REQUIRED negative fixture that must
+  violate the certificate, and an explicit sim-to-real boundary -- hardware
+  validity is never claimable from simulation-only evidence, and a certificate
+  kind missing its defining witnessed conditions is rejected as an assertion.
+  Grounded in dogfood passes 0112/0113 and the operator's robotics directive;
+  routed through `telos-proof control-certificate` and covered by the family
+  negative-fixture conformance gate.
+
 ## 2026-07-01 - Flagship receipt kinds on the organ bundle spine
 
 - Extended the closed `RECEIPT_KINDS` set of the `organ-receipt-bundle` contract

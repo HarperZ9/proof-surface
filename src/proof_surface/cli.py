@@ -23,6 +23,7 @@ _DOMAINS = {
     "eval-attempt": "proof_surface.eval_attempt.cli",
     "ai4science": "proof_surface.ai4science.cli",
     "conservation": "proof_surface.conservation.cli",
+    "control-certificate": "proof_surface.control_certificate.cli",
 }
 
 
