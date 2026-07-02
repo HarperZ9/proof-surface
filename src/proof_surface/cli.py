@@ -24,6 +24,7 @@ _DOMAINS = {
     "ai4science": "proof_surface.ai4science.cli",
     "conservation": "proof_surface.conservation.cli",
     "control-certificate": "proof_surface.control_certificate.cli",
+    "competition-attempt": "proof_surface.competition_attempt.cli",
 }
 
 
