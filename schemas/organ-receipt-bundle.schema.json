@@ -46,7 +46,12 @@
         "receipt_kind": {
           "enum": [
             "coherence-observation",
+            "crucible-assessment",
             "emet-witness",
+            "forum-route",
+            "gather-corpus",
+            "index-context-envelope",
+            "learn-receipt",
             "proof-surface-gate",
             "provenance-receipt",
             "raw-health"
