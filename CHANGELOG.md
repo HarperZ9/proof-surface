@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-07-01 - Flagship receipt kinds on the organ bundle spine
+
+- Extended the closed `RECEIPT_KINDS` set of the `organ-receipt-bundle` contract
+  with the five flagship kinds: `crucible-assessment`, `forum-route`,
+  `index-context-envelope`, `gather-corpus`, `learn-receipt`. The JSON schema
+  enum was updated in lockstep and a test pins the two artifacts together.
+- Added a cross-tool conformance test module proving a mixed bundle (one entry
+  of every flagship kind plus an existing organ kind, synthetic sha256 digests)
+  validates with the stdlib-only validator, and that an entry claiming an
+  unknown `receipt_kind` is still rejected: the set is extended, not opened.
+- `ORGAN_BUNDLE_VERSION` stays `0.1`; validation behavior for existing kinds is
+  unchanged.
+
 ## 2026-07-01 - 0.2.0 - Family hardening (post-integration)
 
 - Typed `failure_labels` (the shared `_failure` vocabulary) are now accepted by

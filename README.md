@@ -65,7 +65,11 @@ the gate records that status but does not perform or synthesize the human act.
 ties RAW health receipts, EMET witness receipts, Sensorium provenance receipts,
 coherence observations, and proof-surface gate decisions together by digest,
 reference, advisory status, and edge relation; it does not embed heavy payloads
-or grant authority.
+or grant authority. The closed `receipt_kind` set also carries the five
+flagship kinds (`crucible-assessment`, `forum-route`, `index-context-envelope`,
+`gather-corpus`, `learn-receipt`), so one bundle can mix flagship and organ
+receipts; any kind outside the set is still rejected -- the vocabulary is
+extended, not opened.
 
 ## Proof-packet wedges
 
