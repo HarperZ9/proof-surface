@@ -51,6 +51,8 @@ ATTEMPT_FIELDS = {
     "tool_use",
     "replay_ref",
     "seed",
+    "external_model_calls",
+    "provider_receipt_ref",
 }
 TOOL_USE_FIELDS = {"tool", "ref"}
 RESULT_FIELDS = {"outcome", "score", "expected_ref"}
@@ -167,6 +169,52 @@ def _validate_attempt(value: Any, issues: list[Issue]) -> None:
     if seed is not None and (isinstance(seed, bool) or not isinstance(seed, int)):
         issues.append(Issue("$.attempt.seed", "expected integer or null"))
     _validate_tool_use(value.get("tool_use"), issues)
+    _validate_hermeticity(value, issues)
+
+
+def _validate_hermeticity(value: dict[str, Any], issues: list[Issue]) -> None:
+    """Hosted-model disclosure (dogfood 0137/0138): when an attempt speaks
+    about its external model calls, the claim must be evidence-consistent.
+    A hermetic claim (0 calls) citing a provider receipt is a contradiction;
+    a nonzero count without a receipt is a claim with no evidence surface;
+    a receipt without a disclosed count is undisclosed external usage."""
+    calls = value.get("external_model_calls")
+    receipt = value.get("provider_receipt_ref")
+    _require_opt_text(receipt, "$.attempt.provider_receipt_ref", issues)
+    if calls is None:
+        if receipt is not None:
+            issues.append(
+                Issue(
+                    "$.attempt.external_model_calls",
+                    "a provider receipt requires a disclosed external model "
+                    "call count",
+                )
+            )
+        return
+    if isinstance(calls, bool) or not isinstance(calls, int) or calls < 0:
+        issues.append(
+            Issue(
+                "$.attempt.external_model_calls",
+                "expected a non-negative integer",
+            )
+        )
+        return
+    if calls == 0 and receipt is not None:
+        issues.append(
+            Issue(
+                "$.attempt.external_model_calls",
+                "a hermetic attempt (0 external model calls) cannot cite a "
+                "provider receipt",
+            )
+        )
+    if calls > 0 and receipt is None:
+        issues.append(
+            Issue(
+                "$.attempt.provider_receipt_ref",
+                "an external-model claim requires a provider receipt "
+                "reference (redacted evidence is admissible; absence is not)",
+            )
+        )
 
 
 def _validate_tool_use(value: Any, issues: list[Issue]) -> None:
