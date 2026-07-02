@@ -17,6 +17,11 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .._branches import (
+    promotion_summary_surfaces,
+    reject_fenced_branch_citations,
+    validate_declared_branches,
+)
 from .._decision import validate_decision_summary
 from .._failure import validate_failure_labels
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
@@ -45,6 +50,7 @@ ROOT_FIELDS = {
     "baseline",
     "solver",
     "solver_branches",
+    "declared_branches",
     "boundary",
     "failure_labels",
     "verdicts",
@@ -93,6 +99,11 @@ def validate_optimization_workflow_packet(data: dict[str, Any]) -> list[Issue]:
     _validate_baseline(data.get("baseline"), issues)
     _validate_solver(data.get("solver"), issues)
     validate_solver_branches(data.get("solver_branches"), issues)
+    declared_branches = data.get("declared_branches")
+    validate_declared_branches(declared_branches, issues)
+    reject_fenced_branch_citations(
+        declared_branches, promotion_summary_surfaces(data), issues
+    )
     validate_boundary(data.get("boundary"), data.get("solver"), issues)
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)

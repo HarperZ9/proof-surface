@@ -23,6 +23,7 @@ from .._failure import validate_failure_labels
 from .._validate import Issue, reject_unknown, require_const, require_enum, require_text
 from ..authorization_receipt import _reject_forbidden
 from ..witness_receipt import _reject_authority_language
+from ._evidence_gates import validate_evidence_gates
 from ._refutation import validate_refutation_gate
 
 PACKET_VERSION = "research-claim-proof-packet/v0"
@@ -57,6 +58,9 @@ ROOT_FIELDS = {
     "decision_summary",
     "formal",
     "failure_labels",
+    "declared_branches",
+    "witness_tier",
+    "evidence_classes",
 }
 SOURCE_FIELDS = {"ref", "sha256", "url", "availability"}
 # Honest retrievability (research/mycology-network-intelligence.md provenance
@@ -118,6 +122,7 @@ def validate_research_claim_packet(data: dict[str, Any]) -> list[Issue]:
     validate_decision_summary(
         data.get("decision_summary"), issues, "$.decision_summary"
     )
+    validate_evidence_gates(data, issues)
     return issues
 
 
@@ -128,9 +133,7 @@ def validate_research_claim_packet_file(path: Path) -> list[Issue]:
         return [Issue("$", str(exc))]
 
 
-# --------------------------------------------------------------------------- #
-# helpers
-# --------------------------------------------------------------------------- #
+# --- helpers --------------------------------------------------------------- #
 
 
 def _require_opt_text(value: Any, path: str, issues: list[Issue]) -> None:
@@ -262,24 +265,19 @@ def _validate_str_list(value: Any, path: str, issues: list[Issue]) -> None:
             issues.append(Issue(f"{path}[{index}]", "expected non-empty string"))
 
 
+def _dict_field(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def _checker_names(value: Any) -> list[str]:
+    items = value if isinstance(value, list) else []
+    return [n for c in items if isinstance(n := _dict_field(c).get("checker"), str)]
+
+
 def _validate_consistency(data: dict[str, Any], issues: list[Issue]) -> None:
-    checks = data.get("checks")
-    checker_names = (
-        [
-            c["checker"]
-            for c in checks
-            if isinstance(c, dict) and isinstance(c.get("checker"), str)
-        ]
-        if isinstance(checks, list)
-        else []
-    )
-    verdicts = data.get("verdicts") if isinstance(data.get("verdicts"), dict) else {}
-    per_check = verdicts.get("per_check") if isinstance(verdicts, dict) else None
-    verdict_names = (
-        [v.get("checker") for v in per_check if isinstance(v, dict)]
-        if isinstance(per_check, list)
-        else []
-    )
+    checker_names = _checker_names(data.get("checks"))
+    per_check = _dict_field(data.get("verdicts")).get("per_check")
+    verdict_names = [v.get("checker") for v in per_check or [] if isinstance(v, dict)]
     for name in sorted(set(checker_names)):
         count = verdict_names.count(name)
         if count == 0:

@@ -26,20 +26,20 @@ def _check_measurement(status: str) -> tuple[float | None, float]:
     return None, _TOLERANCE  # unverifiable / unknown -> fail-closed
 
 
-def build_research_claim_packet(
-    *,
-    statement: str,
-    sources: list[dict[str, Any]],
-    attempts: list[dict[str, Any]],
+def _derive_promotion(
+    overall: str, attempts: list[dict[str, Any]], formal: dict[str, Any] | None
+) -> str:
+    """A standing counterexample outranks any fixture-level pass: the derived
+    rung is REFUTED, never a positive promotion."""
+    if has_standing_counterexample({"attempts": attempts, "formal": formal or {}}):
+        return "REFUTED"
+    return "CRUCIBLE_MATCH" if overall == "MATCH" else "UNVERIFIABLE"
+
+
+def _normalize_checks(
     checks: list[dict[str, Any]],
-    claim: str,
-    scope: str,
-    packet_id: str,
-    uncertainty: list[str] | None = None,
-    promotion: str | None = None,
-    formal: dict[str, Any] | None = None,
-    failure_labels: list[str] | None = None,
-) -> dict[str, Any]:
+) -> tuple[list[dict[str, Any]], list[str], list[dict[str, Any]]]:
+    """Map each check to its (per_check verdict, status, normalized entry)."""
     per_check: list[dict[str, Any]] = []
     statuses: list[str] = []
     norm_checks: list[dict[str, Any]] = []
@@ -56,19 +56,29 @@ def build_research_claim_packet(
         if c.get("notes"):
             entry["notes"] = c["notes"]
         norm_checks.append(entry)
+    return per_check, statuses, norm_checks
 
+
+def build_research_claim_packet(
+    *,
+    statement: str,
+    sources: list[dict[str, Any]],
+    attempts: list[dict[str, Any]],
+    checks: list[dict[str, Any]],
+    claim: str,
+    scope: str,
+    packet_id: str,
+    uncertainty: list[str] | None = None,
+    promotion: str | None = None,
+    formal: dict[str, Any] | None = None,
+    failure_labels: list[str] | None = None,
+    declared_branches: list[dict[str, Any]] | None = None,
+    witness_tier: dict[str, Any] | None = None,
+    evidence_classes: list[str] | None = None,
+) -> dict[str, Any]:
+    per_check, statuses, norm_checks = _normalize_checks(checks)
     overall = combine_overall(statuses)
-    # A standing counterexample outranks any fixture-level pass: the derived
-    # rung is REFUTED, never a positive promotion.
-    standing = has_standing_counterexample(
-        {"attempts": attempts, "formal": formal or {}}
-    )
-    resolved_promotion = promotion or (
-        "REFUTED"
-        if standing
-        else ("CRUCIBLE_MATCH" if overall == "MATCH" else "UNVERIFIABLE")
-    )
-
+    resolved_promotion = promotion or _derive_promotion(overall, attempts, formal)
     packet = {
         "version": PACKET_VERSION,
         "packet_id": packet_id,
@@ -91,7 +101,25 @@ def build_research_claim_packet(
     }
     if failure_labels is not None:
         packet["failure_labels"] = list(failure_labels)
+    _attach_evidence_gate_fields(
+        packet, declared_branches, witness_tier, evidence_classes
+    )
     return packet
+
+
+def _attach_evidence_gate_fields(
+    packet: dict[str, Any],
+    declared_branches: list[dict[str, Any]] | None,
+    witness_tier: dict[str, Any] | None,
+    evidence_classes: list[str] | None,
+) -> None:
+    """Attach the optional family evidence-gate fields when supplied."""
+    if declared_branches is not None:
+        packet["declared_branches"] = [dict(b) for b in declared_branches]
+    if witness_tier is not None:
+        packet["witness_tier"] = dict(witness_tier)
+    if evidence_classes is not None:
+        packet["evidence_classes"] = list(evidence_classes)
 
 
 def to_crucible_inputs(packet: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:

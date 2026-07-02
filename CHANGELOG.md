@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- Family evidence gates (dogfood 0115/0117/0126), three optional disclosure
+  fields that stay honest under scrutiny:
+  - `declared_branches[]` (branch matrix, wired into `optimization_workflow`
+    and `research_claim`): every declared branch is `EXECUTED` (and records the
+    `MATCH`/`DRIFT`/`UNVERIFIABLE` verdict it earned) or `UNAVAILABLE_FENCED`
+    (and carries non-empty `probe_evidence` of the fence). A fenced branch that
+    claims a verdict is rejected, and a claim or decision reason that cites a
+    fenced `branch_id` as support is rejected (a branch that did not run is not
+    evidence).
+  - `witness_tier` (wired into `research_claim`): declares the target verifier
+    tier, the strongest tier that actually executed, and whether the target
+    slot ran. Bound to the promotion ladder so a rung may not exceed the
+    strongest executed tier; when the target slot did not execute the declared
+    target tier may not be named as achieved.
+  - `evidence_classes[]` (wired into `research_claim`): a closed vocabulary of
+    evidence provenance. A fact-tier promotion (CRUCIBLE_MATCH and above)
+    requires at least one class that is not `single-modality-derived`; evidence
+    that is entirely single-modality caps the promotion at the hypothesis rung.
+  - All three are optional; legacy packets without the fields validate
+    unchanged. Off-ladder honesty rungs (UNVERIFIABLE, REFUTED) are never
+    capped. Covered by dedicated tests and the family negative-fixture gate.
 - Added wedge #11 `competition_attempt` (the SAIR competition/judge lane): a
   single competition attempt binds the challenge to a source-pinned
   `judge_repo` observation (repo ref, 40-hex head sha, observed file count,
