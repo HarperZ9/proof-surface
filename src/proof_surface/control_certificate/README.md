@@ -40,6 +40,46 @@ decreases, a feasible set stays reachable). Domain-general: controller
 stability, program termination via ranking functions, iterative-solver
 convergence, MPC feasibility.
 
+## Contract additions from the lane handoff
+
+- `certificate.provenance` (`synthesized` / `verified` / `author-asserted`,
+  optional `provenance_ref`): the certificate's own origin is disclosed and
+  never conflated -- an author-asserted candidate is a different evidence
+  class than an independently verified one. The builder defaults to
+  `author-asserted` (fail-closed: never an upgrade).
+- `trajectory` (`log_sha256`, `samples`, optional `description`): the packet
+  binds the certificate check to the hashed executed trajectory log. Without
+  the binding there is nothing the verdict is a verdict OF.
+
+## Prior art (the fence)
+
+The composed artifact -- a sealed, offline-re-verifiable receipt binding an
+executed trajectory to a declared certificate with its own provenance, plus
+negative fixtures proving the checker can fail -- is unclaimed in the
+2024-2026 verified-control literature (verified 2026-07-02 by a 3-researcher
+grounding pass). Nearest neighbors, each one level short:
+
+- Certified Control (arXiv 2104.06178): per-decision runtime certificates,
+  not per-run archived or offline re-verifiable.
+- ModelPlex (FMSD 2016): provably correct runtime monitors; no sealed
+  re-checkable artifact.
+- Dynamic neural-certificate verification (arXiv 2507.11987): online
+  monitoring, not sealed offline receipts.
+- ROVER (arXiv 2511.17781): STL trace evaluation without sealed provenance or
+  negative fixtures.
+- Ethical Black Box (arXiv 2205.06564): flight-recorder logging; no invariant
+  binding or re-verification.
+- Tamper-evident logging (arXiv 2509.03821): seals bytes, not invariants.
+- Fossil 2.0 (arXiv 2311.09793): certificate synthesis, not run receipts.
+
+## Demo
+
+`examples/control_certificate/demo.py` synthesizes a real discrete Lyapunov
+certificate (P = Q + A^T P A fixed-point iteration, provenance `synthesized`),
+measures the decrease residual over simulated trajectories, and shows the
+stable loop PASS (MATCH) while the destabilized loop under the SAME
+certificate FAILS (DRIFT). Every residual is computed, never hand-entered.
+
 ## Use
 
 ```bash

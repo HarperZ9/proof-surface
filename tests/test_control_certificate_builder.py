@@ -56,6 +56,7 @@ def _packet(**overrides):
             "violates_certificate": True,
         },
         "sim_to_real": {"hardware_validity_claim": False, "hardware_evidence": []},
+        "trajectory": {"log_sha256": _HEX, "samples": 500},
         "claim": "the closed loop is stable on the sampled region",
         "scope": "one linearized plant, sampled states",
         "packet_id": "ctrl-1",
@@ -215,6 +216,66 @@ def test_hardware_validity_with_evidence_on_hardware_is_admissible():
         },
     )
     assert validate_control_certificate_packet(packet) == []
+
+
+def test_certificate_provenance_defaults_to_author_asserted():
+    # Fail-closed: an undeclared provenance is the weakest tier, never an
+    # upgrade. Synthesized / verified / author-asserted are never conflated.
+    packet = _packet()
+    assert packet["certificate"]["provenance"] == "author-asserted"
+    assert validate_control_certificate_packet(packet) == []
+
+
+def test_unknown_certificate_provenance_is_rejected():
+    packet = _packet(
+        certificate={
+            "kind": "lyapunov",
+            "name": "V(x) = x^T P x",
+            "provenance": "blessed",
+        }
+    )
+    assert any(
+        "certificate.provenance" in i.path
+        for i in validate_control_certificate_packet(packet)
+    )
+
+
+def test_verified_provenance_with_ref_is_admissible():
+    packet = _packet(
+        certificate={
+            "kind": "lyapunov",
+            "name": "V(x) = x^T P x",
+            "provenance": "verified",
+            "provenance_ref": "sos-checker run 2026-07-01",
+        }
+    )
+    assert validate_control_certificate_packet(packet) == []
+
+
+def test_missing_trajectory_binding_is_rejected():
+    # The receipt binds the certificate check to the executed trajectory log;
+    # without the binding there is nothing the verdict is a verdict OF.
+    packet = _packet()
+    del packet["trajectory"]
+    assert any(
+        "trajectory" in i.path for i in validate_control_certificate_packet(packet)
+    )
+
+
+def test_bad_trajectory_digest_is_rejected():
+    packet = _packet(trajectory={"log_sha256": "not-a-digest", "samples": 500})
+    assert any(
+        "trajectory.log_sha256" in i.path
+        for i in validate_control_certificate_packet(packet)
+    )
+
+
+def test_non_positive_trajectory_samples_are_rejected():
+    packet = _packet(trajectory={"log_sha256": _HEX, "samples": 0})
+    assert any(
+        "trajectory.samples" in i.path
+        for i in validate_control_certificate_packet(packet)
+    )
 
 
 def test_unknown_certificate_kind_is_rejected():

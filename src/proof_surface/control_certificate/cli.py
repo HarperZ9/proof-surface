@@ -66,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         certificate=spec.get("certificate", {}),
         witnesses=spec.get("witnesses", []),
         negative_fixture=spec.get("negative_fixture", {}),
+        trajectory=spec.get("trajectory", {}),
         claim=args.claim,
         scope=args.scope,
         packet_id=args.packet_id,

@@ -40,6 +40,9 @@ CERTIFICATE_KINDS = {
     "mpc-feasibility",
 }
 REGIMES = {"simulation", "hardware", "hybrid"}
+# Certificate origins are never conflated: a synthesized or independently
+# verified certificate is a different evidence class than an author-asserted one.
+PROVENANCES = {"synthesized", "verified", "author-asserted"}
 
 ROOT_FIELDS = {
     "version",
@@ -52,6 +55,7 @@ ROOT_FIELDS = {
     "witnesses",
     "negative_fixture",
     "sim_to_real",
+    "trajectory",
     "failure_labels",
     "verdicts",
     "uncertainty",
@@ -59,8 +63,9 @@ ROOT_FIELDS = {
 }
 SOURCE_FIELDS = {"ref", "sha256"}
 SYSTEM_FIELDS = {"description", "domain", "regime"}
-CERTIFICATE_FIELDS = {"kind", "name", "declared"}
+CERTIFICATE_FIELDS = {"kind", "name", "declared", "provenance", "provenance_ref"}
 WITNESS_FIELDS = {"condition", "residual", "tolerance", "method"}
+TRAJECTORY_FIELDS = {"log_sha256", "samples", "description"}
 VERDICTS_FIELDS = {"overall"}
 
 _HEX64 = re.compile(r"[0-9a-f]{64}\Z")
@@ -94,6 +99,7 @@ def validate_control_certificate_packet(data: dict[str, Any]) -> list[Issue]:
     validate_negative_fixture(data.get("negative_fixture"), issues)
     regime = system.get("regime") if isinstance(system, dict) else None
     validate_sim_to_real(data.get("sim_to_real"), regime, issues)
+    _validate_trajectory(data.get("trajectory"), issues)
     _validate_verdicts(data.get("verdicts"), issues)
     _validate_str_list(data.get("uncertainty"), "$.uncertainty", issues)
     validate_failure_labels(data.get("failure_labels"), issues)
@@ -170,6 +176,32 @@ def _validate_certificate(value: Any, issues: list[Issue]) -> None:
     require_enum(value, "kind", CERTIFICATE_KINDS, issues, "$.certificate.kind")
     require_text(value, "name", issues, "$.certificate.name")
     _require_opt_text(value.get("declared"), "$.certificate.declared", issues)
+    require_enum(
+        value, "provenance", PROVENANCES, issues, "$.certificate.provenance"
+    )
+    _require_opt_text(
+        value.get("provenance_ref"), "$.certificate.provenance_ref", issues
+    )
+
+
+def _validate_trajectory(value: Any, issues: list[Issue]) -> None:
+    """The binding to what was actually run: without it there is nothing the
+    verdict is a verdict OF."""
+    if not isinstance(value, dict):
+        issues.append(
+            Issue("$.trajectory", "expected object (the executed-log binding)")
+        )
+        return
+    reject_unknown(value, "$.trajectory", TRAJECTORY_FIELDS, issues)
+    sha = value.get("log_sha256")
+    if not isinstance(sha, str) or not _HEX64.fullmatch(sha):
+        issues.append(
+            Issue("$.trajectory.log_sha256", "expected 64-char lowercase hex digest")
+        )
+    samples = value.get("samples")
+    if not isinstance(samples, int) or isinstance(samples, bool) or samples <= 0:
+        issues.append(Issue("$.trajectory.samples", "expected an integer > 0"))
+    _require_opt_text(value.get("description"), "$.trajectory.description", issues)
 
 
 def _validate_witnesses(value: Any, issues: list[Issue]) -> None:

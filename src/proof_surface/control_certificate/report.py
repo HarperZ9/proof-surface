@@ -22,7 +22,16 @@ def render_report(packet: dict[str, Any]) -> str:
         f"- **Scope:** {packet.get('scope', '')} - **Domain:** {system.get('domain')}",
         f"- **System:** {system.get('description')} (regime: {system.get('regime')})",
         f"- **Certificate:** {certificate.get('kind')} `{certificate.get('name')}` "
-        f"({certificate.get('declared') or 'n/a'})",
+        f"({certificate.get('declared') or 'n/a'}) -- provenance: "
+        f"{certificate.get('provenance')}"
+        + (
+            f" ({certificate.get('provenance_ref')})"
+            if certificate.get("provenance_ref")
+            else ""
+        ),
+        f"- **Trajectory:** {(packet.get('trajectory') or {}).get('samples')} "
+        f"sample(s), log sha256 "
+        f"{str((packet.get('trajectory') or {}).get('log_sha256'))[:16]}...",
     ]
     lines.extend(render_decision_summary(packet.get("decision_summary")))
     lines.extend(["", "## Witnessed conditions", ""])

@@ -40,6 +40,7 @@ _SPEC = {
         "violates_certificate": True,
     },
     "sim_to_real": {"hardware_validity_claim": False, "hardware_evidence": []},
+    "trajectory": {"log_sha256": _HEX, "samples": 500},
 }
 
 
