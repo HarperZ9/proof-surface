@@ -134,8 +134,7 @@ def test_fenced_layer_may_not_carry_a_passing_result():
         lambda p: p["certificate_layers"][1].update({"passing": True}),
     )
     assert any(
-        "passing" in issue.path
-        for issue in validate_competition_attempt_packet(bad)
+        "passing" in issue.path for issue in validate_competition_attempt_packet(bad)
     )
 
 
@@ -230,13 +229,10 @@ def test_undisclosed_attempt_stays_valid():
 def test_duplicate_certificate_layer_is_rejected():
     bad = _mutate(
         _valid_packet(),
-        lambda p: p["certificate_layers"].append(
-            dict(p["certificate_layers"][-1])
-        ),
+        lambda p: p["certificate_layers"].append(dict(p["certificate_layers"][-1])),
     )
     assert any(
-        "layer" in issue.path
-        for issue in validate_competition_attempt_packet(bad)
+        "layer" in issue.path for issue in validate_competition_attempt_packet(bad)
     )
 
 
@@ -244,7 +240,10 @@ def test_unknown_layer_status_and_method_are_rejected():
     for fn, needle in (
         (lambda p: p["certificate_layers"][0].update({"layer": "vibes"}), "layer"),
         (lambda p: p["certificate_layers"][0].update({"status": "SKIPPED"}), "status"),
-        (lambda p: p["answer_extraction"].update({"method": "regex-anywhere"}), "method"),
+        (
+            lambda p: p["answer_extraction"].update({"method": "regex-anywhere"}),
+            "method",
+        ),
     ):
         issues = validate_competition_attempt_packet(_mutate(_valid_packet(), fn))
         assert any(needle in issue.path for issue in issues), needle
@@ -275,6 +274,5 @@ def test_forged_match_with_zero_executed_layers_is_rejected():
 
     bad = _mutate(_valid_packet(), fence_everything)
     assert any(
-        "overall" in issue.path
-        for issue in validate_competition_attempt_packet(bad)
+        "overall" in issue.path for issue in validate_competition_attempt_packet(bad)
     )

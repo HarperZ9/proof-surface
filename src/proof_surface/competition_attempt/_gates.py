@@ -68,9 +68,7 @@ def validate_answer_extraction(value: Any, issues: list[Issue]) -> None:
         )
 
 
-def _validate_layer(
-    item: Any, path: str, seen: set[str], issues: list[Issue]
-) -> None:
+def _validate_layer(item: Any, path: str, seen: set[str], issues: list[Issue]) -> None:
     if not isinstance(item, dict):
         issues.append(Issue(path, "expected object"))
         return
@@ -134,9 +132,7 @@ def executed_layer_names(layers: Any) -> set[str]:
     }
 
 
-def validate_verdict_citation(
-    layers: Any, verdicts: Any, issues: list[Issue]
-) -> None:
+def validate_verdict_citation(layers: Any, verdicts: Any, issues: list[Issue]) -> None:
     """No tier inflation: the verdict may only cite EXECUTED layers, and MATCH
     requires an executed, passing judge verdict."""
     if not isinstance(verdicts, dict):

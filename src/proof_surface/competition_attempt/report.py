@@ -8,14 +8,38 @@ from .._boundary import render_boundary
 from .._decision import render_decision_summary
 
 
+def _attempt_line(attempt: dict[str, Any]) -> str:
+    """One-line attempt disclosure, honest about undisclosed hosted-model usage."""
+    head = f"- **Attempt:** {attempt.get('attempt_id')} on {attempt.get('model_ref')}"
+    calls = attempt.get("external_model_calls")
+    if calls is None:
+        return head + " -- hosted-model usage undisclosed"
+    receipt = attempt.get("provider_receipt_ref")
+    suffix = f" (receipt: {receipt})" if receipt else ""
+    return head + f" -- external model calls: {calls}{suffix}"
+
+
+def _layer_rows(layers: Any) -> list[str]:
+    """The certificate-ladder table body: one row per layer, EXECUTED or fenced."""
+    rows: list[str] = []
+    for layer in layers or []:
+        if not isinstance(layer, dict):
+            continue
+        evidence = layer.get("evidence_ref") or layer.get("probe_evidence") or ""
+        passing = layer.get("passing")
+        rows.append(
+            f"| {layer.get('layer')} | {layer.get('status')} "
+            f"| {'-' if passing is None else passing} | {evidence} |"
+        )
+    return rows
+
+
 def render_report(packet: dict[str, Any]) -> str:
     verdicts = packet.get("verdicts") or {}
     overall = verdicts.get("overall", "UNVERIFIABLE")
     challenge = packet.get("challenge") or {}
     judge_repo = challenge.get("judge_repo") or {}
-    attempt = packet.get("attempt") or {}
     extraction = packet.get("answer_extraction") or {}
-    calls = attempt.get("external_model_calls")
     lines = [
         f"# Competition-Attempt Proof Packet `{packet.get('packet_id', '')}`",
         "",
@@ -28,17 +52,7 @@ def render_report(packet: dict[str, Any]) -> str:
         f"`{str(judge_repo.get('head_sha'))[:12]}`, "
         f"{judge_repo.get('observed_files')} file(s), files digest "
         f"`{str(judge_repo.get('files_digest'))[:16]}...`",
-        f"- **Attempt:** {attempt.get('attempt_id')} on {attempt.get('model_ref')}"
-        + (
-            f" -- external model calls: {calls}"
-            + (
-                f" (receipt: {attempt.get('provider_receipt_ref')})"
-                if attempt.get("provider_receipt_ref")
-                else ""
-            )
-            if calls is not None
-            else " -- hosted-model usage undisclosed"
-        ),
+        _attempt_line(packet.get("attempt") or {}),
         f"- **Answer extraction:** {extraction.get('method')} from "
         f"{extraction.get('extracted_ref')} "
         f"(injection_checked: {extraction.get('injection_checked')})",
@@ -49,15 +63,7 @@ def render_report(packet: dict[str, Any]) -> str:
     lines.extend(["", "## Certificate layers", ""])
     lines.append("| Layer | Status | Passing | Evidence / probe |")
     lines.append("| --- | --- | --- | --- |")
-    for layer in packet.get("certificate_layers") or []:
-        if not isinstance(layer, dict):
-            continue
-        evidence = layer.get("evidence_ref") or layer.get("probe_evidence") or ""
-        passing = layer.get("passing")
-        lines.append(
-            f"| {layer.get('layer')} | {layer.get('status')} "
-            f"| {'-' if passing is None else passing} | {evidence} |"
-        )
+    lines.extend(_layer_rows(packet.get("certificate_layers")))
     lines.extend(
         [
             "",
