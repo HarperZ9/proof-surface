@@ -79,6 +79,7 @@ telos-proof <domain> --input run.json --claim "..." --scope "..." --out ./artifa
 | `eval-attempt` | `proof_surface.eval_attempt` | `MATCH` iff `correct` and uncontaminated |
 | `ai4science` | `proof_surface.ai4science` | `MATCH` once independently reproduced |
 | `conservation` | `proof_surface.conservation` | `MATCH` iff every witness conserves the invariant |
+| `control-certificate` | `proof_surface.control_certificate` | `MATCH` iff every witnessed certificate condition holds |
 
 Each CLI writes `packet.json`, a Markdown `report.md`, the crucible
 `thesis`/`measurements` for independent re-derivation, and a content-addressed

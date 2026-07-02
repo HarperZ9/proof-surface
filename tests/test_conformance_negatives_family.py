@@ -15,6 +15,10 @@ from proof_surface.conservation import (
     build_conservation_packet,
     validate_conservation_packet,
 )
+from proof_surface.control_certificate import (
+    build_control_certificate_packet,
+    validate_control_certificate_packet,
+)
 from proof_surface.eval_attempt import (
     build_eval_attempt_packet,
     validate_eval_attempt_packet,
@@ -275,6 +279,62 @@ _CONSERVATION_MUTATIONS = {
 }
 
 
+def _control_certificate_valid():
+    return build_control_certificate_packet(
+        sources=[{"ref": "dogfood:pass-0112", "sha256": _HEX}],
+        system={
+            "description": "inverted pendulum under LQR",
+            "domain": "robotics",
+            "regime": "simulation",
+        },
+        certificate={"kind": "lyapunov", "name": "V(x) = x^T P x"},
+        witnesses=[
+            {
+                "condition": "positive-definite",
+                "residual": 0.0,
+                "tolerance": 1e-9,
+                "method": "eig",
+            },
+            {
+                "condition": "decrease",
+                "residual": 3e-7,
+                "tolerance": 1e-6,
+                "method": "dV/dt",
+            },
+        ],
+        negative_fixture={
+            "description": "unstable double integrator",
+            "condition": "decrease",
+            "residual": 0.82,
+            "tolerance": 1e-6,
+            "violates_certificate": True,
+        },
+        claim="c",
+        scope="s",
+        packet_id="ctrl",
+    )
+
+
+_CONTROL_CERTIFICATE_MUTATIONS = {
+    "non-violating-negative-fixture": _mut(
+        lambda p: p["negative_fixture"].update({"violates_certificate": False})
+    ),
+    "violation-within-tolerance": _mut(
+        lambda p: p["negative_fixture"].update({"residual": 1e-9})
+    ),
+    "no-witnesses": _mut(lambda p: p.update({"witnesses": []})),
+    "kind-missing-required-condition": _mut(
+        lambda p: p.update({"witnesses": p["witnesses"][:1]})
+    ),
+    "hardware-claim-from-simulation": _mut(
+        lambda p: p["sim_to_real"].update({"hardware_validity_claim": True})
+    ),
+    "unknown-certificate-kind": _mut(
+        lambda p: p["certificate"].update({"kind": "vibes"})
+    ),
+}
+
+
 _DOMAINS = [
     (
         "optimization",
@@ -305,6 +365,12 @@ _DOMAINS = [
         validate_conservation_packet,
         _conservation_valid(),
         {**_CROSS, **_CONSERVATION_MUTATIONS},
+    ),
+    (
+        "control-certificate",
+        validate_control_certificate_packet,
+        _control_certificate_valid(),
+        {**_CROSS, **_CONTROL_CERTIFICATE_MUTATIONS},
     ),
 ]
 
