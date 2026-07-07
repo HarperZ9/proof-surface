@@ -1,10 +1,14 @@
-# Proof Surface
+<p align="center"><img src=".github/assets/banner.svg" alt="proof-surface: One proof packet per agent action. Verdicts are derived from checks, never read from the packet." width="100%"></p>
 
-<p align="center">
-  <img src="docs/brand/proof-surface-hero.png" alt="Proof Surface, validate evidence packets and receipt contracts">
-</p>
+**One proof packet per agent action. Verdicts are derived from checks, never read from the packet.**
 
-> Validate evidence packets, receipt contracts, gates, ledgers, verdicts, and a family of domain proof-packet wedges.
+![version](https://img.shields.io/badge/version-0.2.0-99f147?style=flat-square&labelColor=14041b)
+![license: MIT](https://img.shields.io/badge/license-MIT-8f8095?style=flat-square&labelColor=14041b)
+[![CI](https://github.com/HarperZ9/proof-surface/actions/workflows/ci.yml/badge.svg)](https://github.com/HarperZ9/proof-surface/actions/workflows/ci.yml)
+![python](https://img.shields.io/badge/python-3.11%2B-blue?style=flat-square&labelColor=14041b)
+![deps: none](https://img.shields.io/badge/deps-none-success?style=flat-square&labelColor=14041b)
+
+Proof Surface is a stdlib-only Python library of contract validators for AI workflow records: evidence packets, work receipts, pre-execution gates, claim ledgers, delegation chains, and evaluation contracts. On top sits a family of eleven domain proof-packet wedges that take evidence a tool already produces (an agent trace, a color measurement, a benchmark attempt, a solver run, a scientific claim) and turn it into a validated, re-derivable packet with a `MATCH` / `DRIFT` / `UNVERIFIABLE` verdict, all reachable through one CLI seam: `telos-proof <domain>`. Every packet can be re-checked by anyone, without trusting the producer.
 
 ## Try it
 
@@ -36,12 +40,7 @@ On top of that base sits a family of eleven **domain proof-packet wedges**: each
 
 > The stdlib-only accountability contract: evidence packets, work-record receipts, and witness validators that reject authority-shaped content.
 
-[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![python](https://img.shields.io/badge/python-3.11%2B-blue.svg)
-![version](https://img.shields.io/badge/version-0.2.0-informational.svg)
-[![CI](https://github.com/HarperZ9/proof-surface/actions/workflows/ci.yml/badge.svg)](https://github.com/HarperZ9/proof-surface/actions/workflows/ci.yml)
-![deps: none](https://img.shields.io/badge/deps-none-success.svg)
-[![part of: AI-accountability toolkit](https://img.shields.io/badge/part_of-AI--accountability_toolkit-7a5cff.svg)](https://harperz9.github.io)
+[![part of: AI-accountability toolkit](https://img.shields.io/badge/part_of-AI--accountability_toolkit-7a5cff?style=flat-square&labelColor=14041b)](https://harperz9.github.io)
 
 ## Contracts
 
