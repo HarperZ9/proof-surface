@@ -62,9 +62,13 @@
   "schema_parity_corpus": "schema-parity.corpus.json",
   "migration": {
     "legacy_path": "../v0.1/valid/minimal.receipt.json",
-    "legacy_sha256": "3ea68f2c2c4b40c64054cb1b348431859355252b1690fc2f2e6080bab86fba71",
+    "legacy_sha256": "3c6f18656a128fbcf2f081278f600c3394832e9149a418dccfe7db2f9e18c641",
     "migrated_path": "migration/migrated-v0.2.receipt.json",
-    "operator_supplied_fields": ["nonce", "action", "target"],
+    "operator_supplied_fields": [
+      "nonce",
+      "action",
+      "target"
+    ],
     "reason": "A v0.1 allowlist can contain several actions or targets. Migration cannot safely guess one exact v0.2 scope."
   }
 }
