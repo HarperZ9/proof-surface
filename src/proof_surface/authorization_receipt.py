@@ -23,12 +23,12 @@ This completes the bilateral provenance pair:
 
 from __future__ import annotations
 
-import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ._strict_json import strict_json_load
 from ._validate import Issue, reject_unknown, require_const, require_text
 
 AUTHORIZATION_VERSION = "0.1"
@@ -120,7 +120,7 @@ _NONCE_RE = re.compile(r"^[0-9a-f]{32,}$")
 
 
 def load_receipt(path: Path) -> dict[str, Any]:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = strict_json_load(path)
     if not isinstance(data, dict):
         raise ValueError(f"{path} did not contain a JSON object")
     return data
@@ -149,7 +149,7 @@ def validate_authorization_receipt(data: dict[str, Any]) -> list[Issue]:
 def validate_authorization_receipt_file(path: Path) -> list[Issue]:
     try:
         return validate_authorization_receipt(load_receipt(path))
-    except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError) as exc:
+    except (FileNotFoundError, OSError, UnicodeError, ValueError) as exc:
         return [Issue("$", str(exc))]
 
 
@@ -251,7 +251,7 @@ def validate_authorization_receipt_v2(data: Any) -> list[Issue]:
 def validate_authorization_receipt_v2_file(path: Path) -> list[Issue]:
     try:
         return validate_authorization_receipt_v2(load_receipt(path))
-    except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError) as exc:
+    except (FileNotFoundError, OSError, UnicodeError, ValueError) as exc:
         return [Issue("$", str(exc))]
 
 

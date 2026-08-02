@@ -17,6 +17,46 @@
       "path": "invalid/unknown-root-field.receipt.json",
       "expected": "invalid",
       "reason": "Unknown root fields fail closed."
+    },
+    {
+      "path": "invalid/duplicate-revoked.receipt.json",
+      "expected": "invalid",
+      "reason": "Duplicate decoded keys make revocation state ambiguous."
+    },
+    {
+      "path": "invalid/duplicate-action.receipt.json",
+      "expected": "invalid",
+      "reason": "Duplicate action keys make exact scope ambiguous."
+    },
+    {
+      "path": "invalid/duplicate-target.receipt.json",
+      "expected": "invalid",
+      "reason": "Duplicate target keys make exact scope ambiguous."
+    },
+    {
+      "path": "invalid/duplicate-max-actions.receipt.json",
+      "expected": "invalid",
+      "reason": "Duplicate max_actions keys make the action budget ambiguous."
+    },
+    {
+      "path": "invalid/duplicate-escaped-action.receipt.json",
+      "expected": "invalid",
+      "reason": "Escaped-equivalent decoded keys are duplicates."
+    },
+    {
+      "path": "invalid/nan-max-actions.receipt.json",
+      "expected": "invalid",
+      "reason": "NaN is not a JSON number and cannot be an action budget."
+    },
+    {
+      "path": "invalid/infinity-max-actions.receipt.json",
+      "expected": "invalid",
+      "reason": "Infinity is not a JSON number and cannot be an action budget."
+    },
+    {
+      "path": "invalid/negative-infinity-max-actions.receipt.json",
+      "expected": "invalid",
+      "reason": "Negative Infinity is not a JSON number and cannot be an action budget."
     }
   ],
   "schema_parity_corpus": "schema-parity.corpus.json",

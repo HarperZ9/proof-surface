@@ -3,12 +3,22 @@
 ## Unreleased
 
 - Added a stdlib-only tracked public-surface gate and wired it into CI. It uses
-  Git's tracked-file list, excludes tests, caches, Git metadata, and build
-  roots, and reports deterministic locations without echoing matched secret
-  values. Machine paths, credential/private-key material, encoding corruption,
-  unresolved template markers, unsupported private-tree references, and new or
-  grown em-dash use fail closed. Existing v0.1 fixture paths and package README
-  punctuation debt are count-bounded so the gate can burn down but not grow.
+  Git's tracked-file list, excludes caches, Git metadata, and build roots, and
+  reports deterministic locations without echoing matched secret values. Every
+  tracked file is scanned as bounded UTF-8 unless its suffix explicitly marks a
+  known binary. Credential-shaped material is checked in source, tests, dotenv
+  variants, credential files, and unknown text suffixes. Unreadable or oversized
+  unclassified files fail closed. Machine paths, encoding corruption, unresolved
+  template markers, unsupported private-tree references, and new or grown
+  em-dash use fail closed on public prose. Existing v0.1 fixture paths and package
+  README punctuation debt are count-bounded so the gate can burn down but not
+  grow.
+- Factored the ledger's duplicate-key and non-finite JSON rejection into one
+  shared stdlib decoder and applied it to raw authorization receipt file and CLI
+  entry points. Authorization v0.2 conformance now covers duplicate scope keys,
+  escaped-equivalent keys, `NaN`, and positive and negative infinity. Dict-only
+  validators remain structural APIs: callers must not permissively parse raw
+  signed JSON before invoking them.
 - Aligned the authorization v0.2 JSON Schema with the reference validator for
   trimmed nonempty strings, explicit-timezone RFC3339 timestamps, JSON boolean
   and integer edge cases, nonce shape, action budgets, and unknown fields. A

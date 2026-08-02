@@ -2,9 +2,10 @@
 """Fail closed on high-signal leaks in tracked public repository surfaces.
 
 Discovery comes from ``git ls-files`` so untracked build output and local state
-cannot change the result. Tests, build roots, caches, and Git metadata are not
-public product surfaces. The scanner reports locations and rule identifiers,
-but never echoes a matched secret value.
+cannot change the result. Every tracked file is scanned as bounded UTF-8 unless
+its suffix explicitly classifies it as a known binary. Build roots, caches, and
+Git metadata stay out of scope. The scanner reports locations and rule
+identifiers, but never echoes a matched secret value.
 """
 
 from __future__ import annotations
@@ -33,33 +34,37 @@ _EXCLUDED_PARTS = frozenset(
         "dist",
         "htmlcov",
         "node_modules",
-        "tests",
         "tmp",
         "venv",
     }
 )
-_TEXT_SUFFIXES = frozenset(
+_KNOWN_BINARY_SUFFIXES = frozenset(
     {
-        "",
-        ".cfg",
-        ".css",
-        ".html",
-        ".ini",
-        ".js",
-        ".json",
-        ".md",
-        ".py",
-        ".rst",
-        ".sh",
-        ".svg",
-        ".toml",
-        ".ts",
-        ".txt",
-        ".xml",
-        ".yaml",
-        ".yml",
+        ".avi",
+        ".bmp",
+        ".gif",
+        ".gz",
+        ".ico",
+        ".jpeg",
+        ".jpg",
+        ".mov",
+        ".mp3",
+        ".mp4",
+        ".otf",
+        ".pdf",
+        ".png",
+        ".pyc",
+        ".tar",
+        ".ttf",
+        ".wav",
+        ".webm",
+        ".whl",
+        ".woff",
+        ".woff2",
+        ".zip",
     }
 )
+MAX_SCAN_BYTES = 2_000_000
 _ROOT_PUBLIC_FILES = frozenset(
     {
         "AGENTS.md",
@@ -188,8 +193,8 @@ def _is_excluded(relative: Path) -> bool:
     )
 
 
-def _is_text_surface(relative: Path) -> bool:
-    return relative.suffix.lower() in _TEXT_SUFFIXES
+def _is_known_binary(relative: Path) -> bool:
+    return relative.suffix.lower() in _KNOWN_BINARY_SUFFIXES
 
 
 def is_public_prose(relative: Path) -> bool:
@@ -226,11 +231,9 @@ def discover_public_surfaces(repo: Path) -> list[Path]:
             relative = Path(raw.decode("utf-8"))
         except UnicodeDecodeError as exc:
             raise GateError("git returned a non-UTF-8 tracked path") from exc
-        if _is_excluded(relative) or not _is_text_surface(relative):
+        if _is_excluded(relative):
             continue
-        candidate = repo / relative
-        if candidate.is_file():
-            paths.append(candidate)
+        paths.append(repo / relative)
     return sorted(paths, key=lambda path: path.relative_to(repo).as_posix())
 
 
@@ -249,23 +252,6 @@ def scan_text(path: Path, text: str, *, public_prose: bool) -> list[Finding]:
     findings: list[Finding] = []
 
     for line_number, line in enumerate(text.splitlines(), 1):
-        for pattern in (_WINDOWS_PATH_RE, _POSIX_PATH_RE):
-            for match in pattern.finditer(line):
-                matched = match.group(0)
-                used = allowance_use.get(matched, 0)
-                if used < allowances.get(matched, 0):
-                    allowance_use[matched] = used + 1
-                    continue
-                findings.append(
-                    _finding(
-                        path,
-                        line_number,
-                        match,
-                        "machine-path",
-                        "machine-absolute path on a public surface",
-                    )
-                )
-
         secret_spans: list[tuple[int, int]] = []
         for match in _TOKEN_RE.finditer(line):
             findings.append(
@@ -307,6 +293,22 @@ def scan_text(path: Path, text: str, *, public_prose: bool) -> list[Finding]:
 
         if not public_prose:
             continue
+        for pattern in (_WINDOWS_PATH_RE, _POSIX_PATH_RE):
+            for match in pattern.finditer(line):
+                matched = match.group(0)
+                used = allowance_use.get(matched, 0)
+                if used < allowances.get(matched, 0):
+                    allowance_use[matched] = used + 1
+                    continue
+                findings.append(
+                    _finding(
+                        path,
+                        line_number,
+                        match,
+                        "machine-path",
+                        "machine-absolute path on a public surface",
+                    )
+                )
         for match in re.finditer(_EM_DASH, line):
             if em_dash_use < em_dash_allowance:
                 em_dash_use += 1
@@ -353,16 +355,43 @@ def scan_repository(repo: Path) -> tuple[list[Path], list[Finding]]:
     findings: list[Finding] = []
     for path in surfaces:
         relative = path.relative_to(repo)
+        if _is_known_binary(relative):
+            continue
         try:
-            text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeError) as exc:
+            with path.open("rb") as handle:
+                raw = handle.read(MAX_SCAN_BYTES + 1)
+        except OSError as exc:
             findings.append(
                 Finding(
                     relative.as_posix(),
                     1,
                     1,
-                    "unreadable-surface",
-                    f"tracked text surface could not be read: {type(exc).__name__}",
+                    "unreadable-unclassified",
+                    f"tracked unclassified file could not be read: {type(exc).__name__}",
+                )
+            )
+            continue
+        if len(raw) > MAX_SCAN_BYTES:
+            findings.append(
+                Finding(
+                    relative.as_posix(),
+                    1,
+                    1,
+                    "oversized-unclassified",
+                    "tracked unclassified file exceeds the scan byte limit",
+                )
+            )
+            continue
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeError as exc:
+            findings.append(
+                Finding(
+                    relative.as_posix(),
+                    1,
+                    1,
+                    "unreadable-unclassified",
+                    f"tracked unclassified file is not UTF-8: {type(exc).__name__}",
                 )
             )
             continue
@@ -384,7 +413,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"public surface gate: UNVERIFIABLE: {exc}")
         return 2
 
-    print(f"public surface gate: scanned {len(surfaces)} tracked text surface(s)")
+    print(f"public surface gate: scanned {len(surfaces)} tracked file(s)")
     for finding in findings:
         print(finding.render())
     if findings:

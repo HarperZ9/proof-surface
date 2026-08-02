@@ -15,6 +15,7 @@ import json
 import sys
 from pathlib import Path
 
+from ._strict_json import strict_json_load
 from .authorization_receipt import (
     validate_authorization_receipt,
     validate_authorization_receipt_v2,
@@ -47,8 +48,8 @@ def _usage() -> str:
 
 def _validation_result(path: Path) -> tuple[int, dict]:
     try:
-        document = json.loads(path.read_text(encoding="utf-8"))
-    except (FileNotFoundError, OSError, UnicodeError, json.JSONDecodeError) as exc:
+        document = strict_json_load(path)
+    except (FileNotFoundError, OSError, UnicodeError, ValueError) as exc:
         return 2, {
             "verdict": "UNVERIFIABLE",
             "reason": "malformed_document",

@@ -24,6 +24,7 @@ import pytest
 
 from proof_surface import authorization_receipt as ar
 from proof_surface import validate_authorization_receipt
+from proof_surface._strict_json import strict_json_load
 
 CONF = (
     Path(__file__).resolve().parents[1]
@@ -32,6 +33,16 @@ CONF = (
     / "v0.1"
 )
 CONF_V2 = CONF.parent / "v0.2"
+RAW_V2_INVALIDS = (
+    "invalid/duplicate-revoked.receipt.json",
+    "invalid/duplicate-action.receipt.json",
+    "invalid/duplicate-target.receipt.json",
+    "invalid/duplicate-max-actions.receipt.json",
+    "invalid/duplicate-escaped-action.receipt.json",
+    "invalid/nan-max-actions.receipt.json",
+    "invalid/infinity-max-actions.receipt.json",
+    "invalid/negative-infinity-max-actions.receipt.json",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -380,7 +391,9 @@ def test_conformance_fixtures_match_manifest():
 
 
 def _v2(relative_path: str = "valid/minimal.receipt.json") -> dict:
-    return json.loads((CONF_V2 / relative_path).read_text(encoding="utf-8"))
+    data = strict_json_load(CONF_V2 / relative_path)
+    assert isinstance(data, dict)
+    return data
 
 
 def _v2_now() -> datetime:
@@ -455,7 +468,11 @@ def test_v0_2_schema_and_reference_validator_agree_on_all_manifest_vectors() -> 
     manifest = _v2("manifest.json")
 
     for fixture in manifest["fixtures"]:
-        receipt = _v2(fixture["path"])
+        try:
+            receipt = _v2(fixture["path"])
+        except ValueError:
+            assert fixture["expected"] == "invalid", fixture["path"]
+            continue
         schema_valid = list(schema_validator.iter_errors(receipt)) == []
         reference_valid = ar.validate_authorization_receipt_v2(receipt) == []
         expected_valid = fixture["expected"] == "valid"
@@ -600,11 +617,32 @@ def test_v0_2_revocation_and_time_window_deny() -> None:
 def test_v0_2_conformance_fixtures_match_manifest() -> None:
     manifest = _v2("manifest.json")
     for fixture in manifest["fixtures"]:
-        issues = ar.validate_authorization_receipt_v2(_v2(fixture["path"]))
+        try:
+            receipt = _v2(fixture["path"])
+        except ValueError:
+            assert fixture["expected"] == "invalid", fixture["path"]
+            continue
+        issues = ar.validate_authorization_receipt_v2(receipt)
         if fixture["expected"] == "valid":
             assert issues == [], f"{fixture['path']} should be valid: {issues}"
         else:
             assert issues, f"{fixture['path']} should be invalid"
+
+
+@pytest.mark.parametrize("relative_path", RAW_V2_INVALIDS)
+def test_v0_2_raw_ambiguous_vectors_fail_strict_loading(relative_path: str) -> None:
+    with pytest.raises(ValueError, match="strict loader"):
+        strict_json_load(CONF_V2 / relative_path)
+
+
+@pytest.mark.parametrize("relative_path", RAW_V2_INVALIDS)
+def test_v0_2_file_validator_returns_typed_issue_for_ambiguous_json(
+    relative_path: str,
+) -> None:
+    issues = ar.validate_authorization_receipt_v2_file(CONF_V2 / relative_path)
+    assert len(issues) == 1
+    assert issues[0].path == "$"
+    assert "strict loader" in issues[0].message
 
 
 def test_v0_1_legacy_fixture_bytes_and_behavior_are_pinned() -> None:

@@ -3,10 +3,22 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from proof_surface.cli import main
 
 
 ROOT = Path(__file__).resolve().parents[1]
+RAW_AUTHORIZATION_INVALIDS = (
+    "duplicate-revoked.receipt.json",
+    "duplicate-action.receipt.json",
+    "duplicate-target.receipt.json",
+    "duplicate-max-actions.receipt.json",
+    "duplicate-escaped-action.receipt.json",
+    "nan-max-actions.receipt.json",
+    "infinity-max-actions.receipt.json",
+    "negative-infinity-max-actions.receipt.json",
+)
 
 
 def test_validate_cli_accepts_tadr_bundle(capsys) -> None:
@@ -65,3 +77,23 @@ def test_validate_cli_fails_closed_on_unknown_contract(tmp_path, capsys) -> None
     result = json.loads(capsys.readouterr().out)
     assert result["verdict"] == "UNVERIFIABLE"
     assert result["reason"] == "unknown_contract"
+
+
+@pytest.mark.parametrize("filename", RAW_AUTHORIZATION_INVALIDS)
+def test_validate_cli_rejects_ambiguous_authorization_json(
+    filename: str, capsys
+) -> None:
+    path = (
+        ROOT
+        / "conformance"
+        / "authorization-receipt"
+        / "v0.2"
+        / "invalid"
+        / filename
+    )
+
+    assert main(["validate", str(path)]) == 2
+    result = json.loads(capsys.readouterr().out)
+    assert result["verdict"] == "UNVERIFIABLE"
+    assert result["reason"] == "malformed_document"
+    assert "strict loader" in result["issues"][0]["message"]

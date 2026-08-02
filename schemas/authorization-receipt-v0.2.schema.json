@@ -45,5 +45,5 @@
     "policy_ref": {"type": "string", "pattern": "\\S"},
     "notes": {"type": "string", "pattern": "\\S"}
   },
-  "$comment": "The reference validator also rejects forbidden authorization-suppression field names recursively and requires expires_at to be after issued_at."
+  "$comment": "The reference raw-input loader rejects duplicate decoded object keys and non-finite numeric constants before schema validation. Dict-only validators cannot recover duplicate-key evidence after permissive parsing. The reference validator also rejects forbidden authorization-suppression field names recursively and requires expires_at to be after issued_at."
 }

@@ -32,13 +32,81 @@ def test_discovery_is_tracked_only_and_excludes_build_and_git(tmp_path: Path) ->
     assert gate.discover_public_surfaces(repo) == [repo / "README.md"]
 
 
+def test_credential_suffixes_and_unknown_text_are_always_scanned(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "--quiet")
+    token = "ghp_" + "a" * 30
+    private_key = "-----BEGIN " + "OPENSSH PRIVATE KEY-----"
+    paths = [
+        repo / ".env.local",
+        repo / "operator.pem",
+        repo / "operator.key",
+        repo / "app.properties",
+        repo / "runtime.conf",
+        repo / "unknown.payload",
+    ]
+    for path in paths:
+        path.write_text(token + "\n" + private_key + "\n", encoding="utf-8")
+    _git(repo, "add", *[path.name for path in paths])
+
+    surfaces, findings = gate.scan_repository(repo)
+
+    assert surfaces == sorted(paths)
+    assert {finding.path for finding in findings} == {path.name for path in paths}
+    assert {finding.code for finding in findings} == {
+        "private-key-material",
+        "secret-material",
+    }
+
+
+def test_known_binary_is_exempt_but_unknown_binary_fails_closed(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "--quiet")
+    (repo / "image.png").write_bytes(b"\x89PNG\r\n\x1a\n\xff\xfe")
+    (repo / "unknown.blob").write_bytes(b"\xff\xfe\x00\x01")
+    _git(repo, "add", "image.png", "unknown.blob")
+
+    surfaces, findings = gate.scan_repository(repo)
+
+    assert surfaces == [repo / "image.png", repo / "unknown.blob"]
+    assert [(finding.path, finding.code) for finding in findings] == [
+        ("unknown.blob", "unreadable-unclassified")
+    ]
+
+
+def test_oversized_unclassified_file_fails_closed(
+    tmp_path: Path, monkeypatch
+) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "--quiet")
+    path = repo / "large.unknown"
+    path.write_text("x" * 65, encoding="utf-8")
+    _git(repo, "add", path.name)
+    monkeypatch.setattr(gate, "MAX_SCAN_BYTES", 64)
+
+    _, findings = gate.scan_repository(repo)
+
+    assert [(finding.path, finding.code) for finding in findings] == [
+        ("large.unknown", "oversized-unclassified")
+    ]
+
+
 def test_scan_reports_each_high_signal_public_leak() -> None:
+    token = "ghp_" + "a" * 30
+    private_key = "-----BEGIN " + "OPENSSH PRIVATE KEY-----"
     text = "\n".join(
         [
             "C:/Users/alice/private.json",
             "/home/alice/private.json",
-            "api_token = ghp_abcdefghijklmnopqrstuvwxyz012345",
-            "-----BEGIN OPENSSH PRIVATE KEY-----",
+            "api_token = " + token,
+            private_key,
             "This uses an em dash \u2014 here.",
             "Mojibake \u00e2\u20ac\u201d remains.",
             "TODO: replace this.",
@@ -61,7 +129,7 @@ def test_scan_reports_each_high_signal_public_leak() -> None:
 
 
 def test_source_code_is_scanned_for_secret_material_not_prose_style() -> None:
-    text = 'TOKEN = "sk-abcdefghijklmnopqrstuvwxyz012345"\n# TODO \u2014 prose\n'
+    text = 'TOKEN = "' + "sk-" + "a" * 30 + '"\n# TODO \u2014 prose\n'
 
     findings = gate.scan_text(Path("src/module.py"), text, public_prose=False)
 

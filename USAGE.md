@@ -303,6 +303,14 @@ and consumer must perform those checks before product code runs, with ledger
 checks and consumption in one atomic operation. `actions_used` is an observed
 input to this pure checker, not a state mutation.
 
+Raw authorization JSON must cross a strict decoding boundary before signature
+verification or contract validation. `validate_authorization_receipt_v2_file`
+and `telos-proof validate` reject duplicate decoded keys, including escaped
+equivalents, plus `NaN` and infinities. A dict-only validator cannot recover
+duplicate-key evidence after a permissive caller has already parsed it. An
+integration that receives raw JSON must therefore use one of the strict file or
+CLI paths, or an equivalently strict decoder, before canonicalization.
+
 ---
 
 ## Example 3 -- pre-execution gate and evaluation contract
@@ -487,4 +495,6 @@ python -m proof_surface.cli validate document.json
 
 The command prints a typed JSON result. It returns 0 for `MATCH`, 1 for a known
 contract that is `UNVERIFIABLE`, and 2 when the document cannot be loaded or its
-contract cannot be identified.
+contract cannot be identified. Ambiguous raw JSON, such as duplicate object
+keys or non-finite numeric constants, is a malformed document and returns the
+typed `UNVERIFIABLE` result with exit code 2.

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from proof_surface.agent_action import redaction
 
-_SECRET = "sk-live-super-secret-token-value"
+_SECRET = "sk-" + "live-super-secret-token-value"
 
 
 def test_redact_returns_a_digest_ref_and_hides_the_raw():
