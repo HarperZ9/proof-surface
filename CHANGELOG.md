@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added `learn-lesson` to the organ-bundle `RECEIPT_KINDS` closed set: the
+  receipt kind for the organizational learning loop. A lesson entry composes
+  onto the same spine every flagship already rides, carrying the lesson's
+  content-addressed seal hash as its `payload_sha256`. Backward-compatible
+  (additive to the set); the kind-vocabulary test, the JSON schema enum, and the
+  mixed-bundle fixture stay in lockstep.
 - N-instance replication gate (dogfood 0145), one more optional disclosure field
   shared across the family and wired into `model_eval` and `ai4science` first:
   - `replication` (an object `{instances: [{instance_id, verdict, warnings?}],
