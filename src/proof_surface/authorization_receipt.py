@@ -23,16 +23,24 @@ This completes the bilateral provenance pair:
 
 from __future__ import annotations
 
-import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ._strict_json import strict_json_load
 from ._validate import Issue, reject_unknown, require_const, require_text
 
 AUTHORIZATION_VERSION = "0.1"
 RECEIPT_KIND = "authorization-grant"
+
+# v0.1 remains the stable allowlist contract above and throughout this module.
+# v0.2 is a separate inner-receipt contract for externally signed,
+# exactly-scoped, atomically consumed authorization. Proof Surface validates its
+# structure and one proposed action; it does not verify signatures or mutate an
+# action ledger.
+AUTHORIZATION_V2_VERSION = "0.2"
+AUTHORIZATION_V2_RECEIPT_KIND = RECEIPT_KIND
 
 # Top-level field allowlist (additionalProperties:false).
 ROOT_FIELDS = {
@@ -52,6 +60,22 @@ ROOT_FIELDS = {
 PRINCIPAL_FIELDS = {"id", "role"}
 AGENT_FIELDS = {"id"}
 SCOPE_FIELDS = {"allowed_actions", "allowed_targets", "max_actions"}
+
+V2_ROOT_FIELDS = {
+    "authorization_version",
+    "receipt_id",
+    "kind",
+    "nonce",
+    "agent_id",
+    "action",
+    "target",
+    "issued_at",
+    "expires_at",
+    "max_actions",
+    "revoked",
+    "policy_ref",
+    "notes",
+}
 
 # Field NAMES lifted verbatim from the excluded warden-prefire capsule/meta.
 # Identical set to work_record.FORBIDDEN_FIELDS -- shared canon, not coincidence.
@@ -79,6 +103,15 @@ FORBIDDEN_FIELDS = {
 _ISO8601_RE = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
 )
+_RFC3339_TIMEZONE_RE = re.compile(
+    r"^(?:(?:(?!0000)\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])"
+    r"|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|02-(?:0[1-9]|1\d|2[0-8])))"
+    r"|(?:(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])"
+    r"|(?:0[48]|[2468][048]|[13579][26])00)-02-29))"
+    r"T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?"
+    r"(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$"
+)
+_NONCE_RE = re.compile(r"^[0-9a-f]{32,}$")
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +120,7 @@ _ISO8601_RE = re.compile(
 
 
 def load_receipt(path: Path) -> dict[str, Any]:
-    data = json.loads(path.read_text(encoding="utf-8"))
+    data = strict_json_load(path)
     if not isinstance(data, dict):
         raise ValueError(f"{path} did not contain a JSON object")
     return data
@@ -116,7 +149,7 @@ def validate_authorization_receipt(data: dict[str, Any]) -> list[Issue]:
 def validate_authorization_receipt_file(path: Path) -> list[Issue]:
     try:
         return validate_authorization_receipt(load_receipt(path))
-    except (FileNotFoundError, OSError, ValueError, json.JSONDecodeError) as exc:
+    except (FileNotFoundError, OSError, UnicodeError, ValueError) as exc:
         return [Issue("$", str(exc))]
 
 
@@ -178,6 +211,101 @@ def check_action(
         )
 
     return None  # ALLOWED
+
+
+def validate_authorization_receipt_v2(data: Any) -> list[Issue]:
+    """Validate an exactly-scoped v0.2 inner authorization receipt.
+
+    This contract is intentionally separate from v0.1. A v0.1 document keeps
+    its original validator and checker behavior. A v0.2 receipt names one
+    agent, one action, and one target. Trust, nonce uniqueness, revocation-store
+    state, and atomic budget consumption remain external obligations.
+    """
+    if not isinstance(data, dict):
+        return [Issue("$", "expected object")]
+
+    issues: list[Issue] = []
+    _reject_forbidden(data, "$", issues)
+    reject_unknown(data, "$", V2_ROOT_FIELDS, issues)
+    require_const(
+        data, "authorization_version", AUTHORIZATION_V2_VERSION, issues
+    )
+    require_const(data, "kind", AUTHORIZATION_V2_RECEIPT_KIND, issues)
+    require_text(data, "receipt_id", issues)
+    require_text(data, "agent_id", issues)
+    require_text(data, "action", issues)
+    require_text(data, "target", issues)
+    _validate_v2_nonce(data.get("nonce"), issues)
+    _validate_v2_timestamp(data, "issued_at", issues)
+    _validate_v2_timestamp(data, "expires_at", issues)
+    _validate_v2_timestamp_ordering(data, issues)
+    _validate_v2_max_actions(data.get("max_actions"), issues)
+    _validate_revoked(data, issues)
+    if "policy_ref" in data:
+        _validate_optional_text(data["policy_ref"], "$.policy_ref", issues)
+    if "notes" in data:
+        _validate_optional_text(data["notes"], "$.notes", issues)
+    return issues
+
+
+def validate_authorization_receipt_v2_file(path: Path) -> list[Issue]:
+    try:
+        return validate_authorization_receipt_v2(load_receipt(path))
+    except (FileNotFoundError, OSError, UnicodeError, ValueError) as exc:
+        return [Issue("$", str(exc))]
+
+
+def check_action_v2(
+    receipt: dict[str, Any],
+    action_kind: str,
+    target: str,
+    *,
+    agent_id: str,
+    actions_used: int,
+    now: datetime | None = None,
+) -> Issue | None:
+    """Check one exact action against a v0.2 inner receipt.
+
+    ``actions_used`` is an observation supplied by the caller. This function
+    does not consume a budget or establish trust. The consuming system must
+    verify an external signature and increment a durable usage ledger before
+    product code runs.
+    """
+    issues = validate_authorization_receipt_v2(receipt)
+    if issues:
+        return Issue("$", f"receipt invalid: {issues[0].path} -- {issues[0].message}")
+
+    if receipt["revoked"] is True:
+        return Issue("$.revoked", "action denied: revoked")
+
+    _now = now if now is not None else datetime.now(tz=timezone.utc)
+    if not isinstance(_now, datetime) or _now.utcoffset() is None:
+        return Issue("$.issued_at", "action denied: invalid_now")
+
+    issued_at = _parse_rfc3339_timezone(receipt["issued_at"])
+    expires_at = _parse_rfc3339_timezone(receipt["expires_at"])
+    if issued_at is None or _now < issued_at:
+        return Issue("$.issued_at", "action denied: grant_not_active")
+    if expires_at is None or _now >= expires_at:
+        return Issue("$.expires_at", "action denied: expired")
+
+    if receipt["agent_id"] != agent_id:
+        return Issue("$.agent_id", "action denied: agent_mismatch")
+    if receipt["action"] != action_kind:
+        return Issue("$.action", "action denied: action_mismatch")
+    if receipt["target"] != target:
+        return Issue("$.target", "action denied: target_mismatch")
+
+    if (
+        isinstance(actions_used, bool)
+        or not isinstance(actions_used, int)
+        or actions_used < 0
+    ):
+        return Issue("$.max_actions", "action denied: invalid_actions_used")
+    if actions_used >= receipt["max_actions"]:
+        return Issue("$.max_actions", "action denied: action_budget_exhausted")
+
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -296,6 +424,61 @@ def _validate_revoked(data: dict[str, Any], issues: list[Issue]) -> None:
 def _validate_notes(value: Any, issues: list[Issue]) -> None:
     if value is not None and not isinstance(value, str):
         issues.append(Issue("$.notes", "expected string"))
+
+
+def _validate_v2_nonce(value: Any, issues: list[Issue]) -> None:
+    if (
+        not isinstance(value, str)
+        or not _NONCE_RE.fullmatch(value)
+        or set(value) == {"0"}
+    ):
+        issues.append(
+            Issue(
+                "$.nonce",
+                "expected nonzero lowercase hex nonce of at least 128-bit length",
+            )
+        )
+
+
+def _validate_v2_max_actions(value: Any, issues: list[Issue]) -> None:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        issues.append(Issue("$.max_actions", "expected positive integer"))
+
+
+def _validate_v2_timestamp_ordering(
+    data: dict[str, Any], issues: list[Issue]
+) -> None:
+    issued = _parse_rfc3339_timezone(data.get("issued_at", ""))
+    expires = _parse_rfc3339_timezone(data.get("expires_at", ""))
+    if issued is not None and expires is not None and expires <= issued:
+        issues.append(Issue("$.expires_at", "expires_at must be after issued_at"))
+
+
+def _validate_optional_text(value: Any, path: str, issues: list[Issue]) -> None:
+    if not isinstance(value, str) or not value.strip():
+        issues.append(Issue(path, "expected non-empty string when present"))
+
+
+def _validate_v2_timestamp(
+    data: dict[str, Any], field: str, issues: list[Issue]
+) -> None:
+    if _parse_rfc3339_timezone(data.get(field)) is None:
+        issues.append(
+            Issue(
+                f"$.{field}",
+                "expected RFC3339 datetime string with explicit timezone",
+            )
+        )
+
+
+def _parse_rfc3339_timezone(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not _RFC3339_TIMEZONE_RE.fullmatch(value):
+        return None
+    normalized = value.replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
 
 
 def _parse_iso8601(value: str) -> datetime | None:

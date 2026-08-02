@@ -11,7 +11,16 @@ mental model. Each domain owns its own arguments; this only routes.
 from __future__ import annotations
 
 import importlib
+import json
 import sys
+from pathlib import Path
+
+from ._strict_json import strict_json_load
+from .authorization_receipt import (
+    validate_authorization_receipt,
+    validate_authorization_receipt_v2,
+)
+from .organ_receipt_bundle import validate_organ_receipt_bundle
 
 _DOMAINS = {
     "agent-action": "proof_surface.agent_action.cli",
@@ -30,7 +39,54 @@ _DOMAINS = {
 
 def _usage() -> str:
     domains = "\n".join(f"    telos-proof {name} ..." for name in sorted(_DOMAINS))
-    return "usage: telos-proof <domain> [options]\n\ndomains:\n" + domains
+    return (
+        "usage: telos-proof <domain> [options]\n"
+        "       telos-proof validate <document.json>\n\n"
+        "domains:\n" + domains
+    )
+
+
+def _validation_result(path: Path) -> tuple[int, dict]:
+    try:
+        document = strict_json_load(path)
+    except (FileNotFoundError, OSError, UnicodeError, ValueError) as exc:
+        return 2, {
+            "verdict": "UNVERIFIABLE",
+            "reason": "malformed_document",
+            "issues": [{"path": "$", "message": str(exc)}],
+        }
+
+    if not isinstance(document, dict):
+        return 2, {
+            "verdict": "UNVERIFIABLE",
+            "reason": "unknown_contract",
+            "issues": [{"path": "$", "message": "expected object"}],
+        }
+
+    contract: str
+    if document.get("organ_bundle_version") == "0.1":
+        contract = "organ-receipt-bundle/v0.1"
+        issues = validate_organ_receipt_bundle(document)
+    elif document.get("authorization_version") == "0.1":
+        contract = "authorization-receipt/v0.1"
+        issues = validate_authorization_receipt(document)
+    elif document.get("authorization_version") == "0.2":
+        contract = "authorization-receipt/v0.2"
+        issues = validate_authorization_receipt_v2(document)
+    else:
+        return 2, {
+            "verdict": "UNVERIFIABLE",
+            "reason": "unknown_contract",
+            "issues": [],
+        }
+
+    return (1 if issues else 0), {
+        "contract": contract,
+        "verdict": "UNVERIFIABLE" if issues else "MATCH",
+        "issues": [
+            {"path": issue.path, "message": issue.message} for issue in issues
+        ],
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -42,6 +98,23 @@ def main(argv: list[str] | None = None) -> int:
     if argv[0] in ("-h", "--help"):
         print(_usage())
         return 0
+
+    if argv[0] == "validate":
+        if len(argv) != 2:
+            print(
+                json.dumps(
+                    {
+                        "verdict": "UNVERIFIABLE",
+                        "reason": "usage",
+                        "issues": [],
+                    },
+                    sort_keys=True,
+                )
+            )
+            return 2
+        exit_code, result = _validation_result(Path(argv[1]))
+        print(json.dumps(result, sort_keys=True))
+        return exit_code
 
     domain = argv[0]
     if domain not in _DOMAINS:

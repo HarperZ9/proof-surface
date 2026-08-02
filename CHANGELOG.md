@@ -2,6 +2,47 @@
 
 ## Unreleased
 
+- Added a stdlib-only tracked public-surface gate and wired it into CI. It uses
+  Git's tracked-file list, excludes caches, Git metadata, and build roots, and
+  reports deterministic locations without echoing matched secret values. Every
+  tracked file is scanned as bounded UTF-8 unless its suffix explicitly marks a
+  known binary. Credential-shaped material is checked in source, tests, dotenv
+  variants, credential files, and unknown text suffixes. Unreadable or oversized
+  unclassified files fail closed. Machine paths, encoding corruption, unresolved
+  template markers, unsupported private-tree references, and new or grown
+  em-dash use fail closed on public prose. Existing v0.1 fixture paths and package
+  README punctuation debt are count-bounded so the gate can burn down but not
+  grow.
+- Factored the ledger's duplicate-key and non-finite JSON rejection into one
+  shared stdlib decoder and applied it to raw authorization receipt file and CLI
+  entry points. Authorization v0.2 conformance now covers duplicate scope keys,
+  escaped-equivalent keys, `NaN`, and positive and negative infinity. Dict-only
+  validators remain structural APIs: callers must not permissively parse raw
+  signed JSON before invoking them.
+- Aligned the authorization v0.2 JSON Schema with the reference validator for
+  trimmed nonempty strings, explicit-timezone RFC3339 timestamps, JSON boolean
+  and integer edge cases, nonce shape, action budgets, and unknown fields. A
+  checked-in 24-case negative parity corpus and every manifest fixture now run
+  through both validators.
+
+- Added the explicit authorization-receipt v0.2 inner contract while preserving
+  v0.1 fixtures, validation, and `check_action` behavior. The v0.2 structure
+  requires a stable receipt ID, a nonzero lowercase hexadecimal nonce with
+  at least 128 bits, exact agent/action/target strings, issued and expiry times,
+  a positive action budget, and a revocation flag. Unknown fields fail closed.
+  `check_action_v2` checks exact identity, scope, time, revocation, and observed
+  budget use. External signature trust and atomic consumption remain consumer
+  obligations. Separate schema, conformance, and migration fixtures make the
+  version boundary explicit.
+- Added `tadr-classification` and `tadr-control` to the organ bundle's closed
+  receipt-kind vocabulary. Bundle payload digests must now be nonzero 64-character
+  lowercase SHA-256 values; existing kinds and nonzero legacy digests remain
+  valid. The schema, validator, valid/invalid vectors, and manifest are pinned
+  together.
+- Added `telos-proof validate <document.json>` and the equivalent module command
+  for authorization v0.1/v0.2 receipts and organ bundles. The command emits a
+  typed JSON `MATCH` or `UNVERIFIABLE` result and fails closed on unknown input.
+
 - Added `learn-lesson` to the organ-bundle `RECEIPT_KINDS` closed set: the
   receipt kind for the organizational learning loop. A lesson entry composes
   onto the same spine every flagship already rides, carrying the lesson's

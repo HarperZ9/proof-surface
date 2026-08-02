@@ -15,18 +15,33 @@ Contract invariants exercised here:
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import pytest
+
 from proof_surface import authorization_receipt as ar
 from proof_surface import validate_authorization_receipt
+from proof_surface._strict_json import strict_json_load
 
 CONF = (
     Path(__file__).resolve().parents[1]
     / "conformance"
     / "authorization-receipt"
     / "v0.1"
+)
+CONF_V2 = CONF.parent / "v0.2"
+RAW_V2_INVALIDS = (
+    "invalid/duplicate-revoked.receipt.json",
+    "invalid/duplicate-action.receipt.json",
+    "invalid/duplicate-target.receipt.json",
+    "invalid/duplicate-max-actions.receipt.json",
+    "invalid/duplicate-escaped-action.receipt.json",
+    "invalid/nan-max-actions.receipt.json",
+    "invalid/infinity-max-actions.receipt.json",
+    "invalid/negative-infinity-max-actions.receipt.json",
 )
 
 
@@ -368,3 +383,288 @@ def test_conformance_fixtures_match_manifest():
             assert issues == [], f"{fixture['path']} should be valid: {issues}"
         else:
             assert issues, f"{fixture['path']} should be invalid but got no issues"
+
+
+# ---------------------------------------------------------------------------
+# Authorization receipt v0.2 inner contract
+# ---------------------------------------------------------------------------
+
+
+def _v2(relative_path: str = "valid/minimal.receipt.json") -> dict:
+    data = strict_json_load(CONF_V2 / relative_path)
+    assert isinstance(data, dict)
+    return data
+
+
+def _v2_now() -> datetime:
+    return datetime(2026, 8, 2, 12, 2, tzinfo=timezone.utc)
+
+
+def test_v0_2_minimal_receipt_passes() -> None:
+    assert ar.validate_authorization_receipt_v2(_v2()) == []
+
+
+def test_v0_2_unknown_field_rejected() -> None:
+    issues = ar.validate_authorization_receipt_v2(
+        _v2("invalid/unknown-root-field.receipt.json")
+    )
+    assert any(issue.path == "$.unexpected_authority" for issue in issues)
+
+
+def test_v0_2_nonce_must_carry_at_least_128_bits() -> None:
+    issues = ar.validate_authorization_receipt_v2(
+        _v2("invalid/short-nonce.receipt.json")
+    )
+    assert any(
+        issue.path == "$.nonce" and "128-bit" in issue.message
+        for issue in issues
+    )
+
+
+def test_v0_2_requires_every_identity_scope_time_and_budget_field() -> None:
+    required = {
+        "authorization_version",
+        "receipt_id",
+        "kind",
+        "nonce",
+        "agent_id",
+        "action",
+        "target",
+        "issued_at",
+        "expires_at",
+        "max_actions",
+        "revoked",
+    }
+    for field in sorted(required):
+        receipt = _v2()
+        del receipt[field]
+        issues = ar.validate_authorization_receipt_v2(receipt)
+        assert any(issue.path == f"$.{field}" for issue in issues), field
+
+
+def test_v0_2_schema_and_stdlib_validator_accept_the_same_valid_fixture() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "schemas"
+        / "authorization-receipt-v0.2.schema.json"
+    )
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+    assert list(jsonschema.Draft202012Validator(schema).iter_errors(_v2())) == []
+    assert ar.validate_authorization_receipt_v2(_v2()) == []
+
+
+def test_v0_2_schema_and_reference_validator_agree_on_all_manifest_vectors() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "schemas"
+        / "authorization-receipt-v0.2.schema.json"
+    )
+    schema_validator = jsonschema.Draft202012Validator(
+        json.loads(schema_path.read_text(encoding="utf-8"))
+    )
+    manifest = _v2("manifest.json")
+
+    for fixture in manifest["fixtures"]:
+        try:
+            receipt = _v2(fixture["path"])
+        except ValueError:
+            assert fixture["expected"] == "invalid", fixture["path"]
+            continue
+        schema_valid = list(schema_validator.iter_errors(receipt)) == []
+        reference_valid = ar.validate_authorization_receipt_v2(receipt) == []
+        expected_valid = fixture["expected"] == "valid"
+        assert schema_valid == reference_valid == expected_valid, fixture["path"]
+
+
+def test_v0_2_schema_parity_negative_corpus() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "schemas"
+        / "authorization-receipt-v0.2.schema.json"
+    )
+    schema_validator = jsonschema.Draft202012Validator(
+        json.loads(schema_path.read_text(encoding="utf-8"))
+    )
+    manifest = _v2("manifest.json")
+    corpus = _v2(manifest["schema_parity_corpus"])
+
+    for case in corpus["cases"]:
+        receipt = _v2(corpus["base"])
+        receipt[case["field"]] = case["value"]
+        schema_valid = list(schema_validator.iter_errors(receipt)) == []
+        reference_valid = ar.validate_authorization_receipt_v2(receipt) == []
+        assert case["expected"] == "invalid"
+        assert schema_valid is False, case["case_id"]
+        assert reference_valid is False, case["case_id"]
+
+
+def test_v0_2_exact_agent_action_and_target_match() -> None:
+    receipt = _v2()
+    assert (
+        ar.check_action_v2(
+            receipt,
+            "lane.call",
+            "forum/forum_route",
+            agent_id="agent:router-7",
+            actions_used=0,
+            now=_v2_now(),
+        )
+        is None
+    )
+
+
+def test_v0_2_agent_identity_is_exact() -> None:
+    issue = ar.check_action_v2(
+        _v2(),
+        "lane.call",
+        "forum/forum_route",
+        agent_id="agent:router-70",
+        actions_used=0,
+        now=_v2_now(),
+    )
+    assert issue is not None
+    assert issue.path == "$.agent_id"
+    assert "agent_mismatch" in issue.message
+
+
+def test_v0_2_action_scope_is_exact() -> None:
+    issue = ar.check_action_v2(
+        _v2(),
+        "lane.calls",
+        "forum/forum_route",
+        agent_id="agent:router-7",
+        actions_used=0,
+        now=_v2_now(),
+    )
+    assert issue is not None
+    assert issue.path == "$.action"
+    assert "action_mismatch" in issue.message
+
+
+def test_v0_2_target_scope_is_exact() -> None:
+    issue = ar.check_action_v2(
+        _v2(),
+        "lane.call",
+        "forum/forum_verify",
+        agent_id="agent:router-7",
+        actions_used=0,
+        now=_v2_now(),
+    )
+    assert issue is not None
+    assert issue.path == "$.target"
+    assert "target_mismatch" in issue.message
+
+
+def test_v0_2_action_budget_is_consumed() -> None:
+    receipt = _v2()
+    issue = ar.check_action_v2(
+        receipt,
+        "lane.call",
+        "forum/forum_route",
+        agent_id="agent:router-7",
+        actions_used=1,
+        now=_v2_now(),
+    )
+    assert receipt["max_actions"] == 1
+    assert issue is not None
+    assert issue.path == "$.max_actions"
+    assert "action_budget_exhausted" in issue.message
+
+
+def test_v0_2_invalid_runtime_action_count_fails_closed() -> None:
+    for actions_used in (-1, True):
+        issue = ar.check_action_v2(
+            _v2(),
+            "lane.call",
+            "forum/forum_route",
+            agent_id="agent:router-7",
+            actions_used=actions_used,
+            now=_v2_now(),
+        )
+        assert issue is not None
+        assert "invalid_actions_used" in issue.message
+
+
+def test_v0_2_revocation_and_time_window_deny() -> None:
+    receipt = _v2()
+    receipt["revoked"] = True
+    issue = ar.check_action_v2(
+        receipt,
+        "lane.call",
+        "forum/forum_route",
+        agent_id="agent:router-7",
+        actions_used=0,
+        now=_v2_now(),
+    )
+    assert issue is not None and "revoked" in issue.message
+
+    receipt = _v2()
+    issue = ar.check_action_v2(
+        receipt,
+        "lane.call",
+        "forum/forum_route",
+        agent_id="agent:router-7",
+        actions_used=0,
+        now=datetime(2026, 8, 2, 12, 5, tzinfo=timezone.utc),
+    )
+    assert issue is not None and "expired" in issue.message
+
+
+def test_v0_2_conformance_fixtures_match_manifest() -> None:
+    manifest = _v2("manifest.json")
+    for fixture in manifest["fixtures"]:
+        try:
+            receipt = _v2(fixture["path"])
+        except ValueError:
+            assert fixture["expected"] == "invalid", fixture["path"]
+            continue
+        issues = ar.validate_authorization_receipt_v2(receipt)
+        if fixture["expected"] == "valid":
+            assert issues == [], f"{fixture['path']} should be valid: {issues}"
+        else:
+            assert issues, f"{fixture['path']} should be invalid"
+
+
+@pytest.mark.parametrize("relative_path", RAW_V2_INVALIDS)
+def test_v0_2_raw_ambiguous_vectors_fail_strict_loading(relative_path: str) -> None:
+    with pytest.raises(ValueError, match="strict loader"):
+        strict_json_load(CONF_V2 / relative_path)
+
+
+@pytest.mark.parametrize("relative_path", RAW_V2_INVALIDS)
+def test_v0_2_file_validator_returns_typed_issue_for_ambiguous_json(
+    relative_path: str,
+) -> None:
+    issues = ar.validate_authorization_receipt_v2_file(CONF_V2 / relative_path)
+    assert len(issues) == 1
+    assert issues[0].path == "$"
+    assert "strict loader" in issues[0].message
+
+
+def test_v0_1_legacy_fixture_bytes_and_behavior_are_pinned() -> None:
+    manifest = _v2("manifest.json")
+    legacy = CONF_V2 / manifest["migration"]["legacy_path"]
+    legacy_bytes = legacy.read_bytes()
+
+    assert (
+        hashlib.sha256(legacy_bytes).hexdigest()
+        == manifest["migration"]["legacy_sha256"]
+    )
+    assert ar.validate_authorization_receipt(json.loads(legacy_bytes)) == []
+    assert ar.validate_authorization_receipt_v2(json.loads(legacy_bytes))
+
+
+def test_v0_2_migration_fixture_is_explicit_and_valid() -> None:
+    manifest = _v2("manifest.json")
+    migrated = _v2(manifest["migration"]["migrated_path"])
+
+    assert ar.validate_authorization_receipt_v2(migrated) == []
+    assert manifest["migration"]["operator_supplied_fields"] == [
+        "nonce",
+        "action",
+        "target",
+    ]

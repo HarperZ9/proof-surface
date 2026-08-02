@@ -13,6 +13,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .._strict_json import strict_json_loads
+
 
 def _canonical(obj: Any) -> str:
     return json.dumps(
@@ -24,25 +26,6 @@ def _hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-    out: dict[str, Any] = {}
-    for key, value in pairs:
-        if key in out:
-            raise ValueError(f"strict loader: duplicate key {key!r}")
-        out[key] = value
-    return out
-
-
-def _reject_constant(constant: str) -> Any:
-    raise ValueError(f"strict loader: non-finite constant {constant!r} not allowed")
-
-
-def _strict_loads(line: str) -> dict[str, Any]:
-    return json.loads(
-        line, object_pairs_hook=_reject_duplicate_keys, parse_constant=_reject_constant
-    )
-
-
 def _event_hash(seq: int, prev: str, record: dict[str, Any]) -> str:
     return _hash(_canonical({"seq": seq, "prev": prev, "record": record}))
 
@@ -50,7 +33,7 @@ def _event_hash(seq: int, prev: str, record: dict[str, Any]) -> str:
 def read_events(path: str | Path) -> list[dict[str, Any]]:
     """Strict-load all events (rejects duplicate keys / NaN / Infinity)."""
     text = Path(path).read_text(encoding="utf-8") if Path(path).exists() else ""
-    return [_strict_loads(line) for line in text.splitlines() if line.strip()]
+    return [strict_json_loads(line) for line in text.splitlines() if line.strip()]
 
 
 def append_event(path: str | Path, record: dict[str, Any]) -> str:

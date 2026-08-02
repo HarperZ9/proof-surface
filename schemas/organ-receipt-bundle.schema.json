@@ -55,7 +55,9 @@
             "learn-receipt",
             "proof-surface-gate",
             "provenance-receipt",
-            "raw-health"
+            "raw-health",
+            "tadr-classification",
+            "tadr-control"
           ]
         },
         "status": {
@@ -73,7 +75,7 @@
         },
         "payload_sha256": {
           "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
+          "pattern": "^(?!0{64}$)[0-9a-f]{64}$"
         },
         "summary": {"type": "string", "minLength": 1},
         "payload_ref": {"type": "string", "minLength": 1}

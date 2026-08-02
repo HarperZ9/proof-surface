@@ -41,7 +41,8 @@ Everything is re-exported from the top-level `proof_surface` package.
 | --- | --- | --- |
 | proof-surface packet | `validate_packet`, `validate_packet_file` | -- |
 | work-record receipt | `validate_work_record`, `validate_work_record_file` | -- |
-| authorization receipt | `validate_authorization_receipt`, `validate_authorization_receipt_file` | `check_action(receipt, action, target, *, now=None) -> Issue \| None` |
+| authorization receipt v0.1 | `validate_authorization_receipt`, `validate_authorization_receipt_file` | `check_action(receipt, action, target, *, now=None) -> Issue \| None` |
+| authorization receipt v0.2 | `validate_authorization_receipt_v2`, `validate_authorization_receipt_v2_file` | `check_action_v2(receipt, action, target, *, agent_id, actions_used, now=None) -> Issue \| None` |
 | witness receipt | `validate_witness_receipt`, `validate_witness_receipt_file` | -- |
 | pre-execution gate | `validate_gate_request` | `evaluate_gate(request) -> GateDecision` |
 | evaluation contract | `validate_evaluation_contract` | `evaluate(contract, results) -> EvalDecision` |
@@ -259,6 +260,57 @@ The first line confirms the receipt is structurally valid, the second shows an
 allowed action (`None`), and the third shows a denial because `delete_file` is
 not in the allowlist.
 
+### Exactly scoped v0.2 inner receipts
+
+Version 0.2 is a separate contract for a signed authorization system's inner
+receipt. It names one agent, one action, and one target, and it requires a
+nonzero lowercase hexadecimal nonce with at least 128 bits, an issued time,
+an expiry, and a positive `max_actions` budget. Unknown fields fail closed.
+The v0.1 validator and `check_action` API remain unchanged.
+
+```python
+from datetime import datetime, timezone
+from proof_surface import check_action_v2, validate_authorization_receipt_v2
+
+receipt = {
+    "authorization_version": "0.2",
+    "receipt_id": "ar2-forum-route-0001",
+    "kind": "authorization-grant",
+    "nonce": "0123456789abcdef0123456789abcdef",
+    "agent_id": "agent:router-7",
+    "action": "lane.call",
+    "target": "forum/forum_route",
+    "issued_at": "2026-08-02T12:00:00Z",
+    "expires_at": "2026-08-02T12:05:00Z",
+    "max_actions": 1,
+    "revoked": False,
+}
+
+assert validate_authorization_receipt_v2(receipt) == []
+assert check_action_v2(
+    receipt,
+    "lane.call",
+    "forum/forum_route",
+    agent_id="agent:router-7",
+    actions_used=0,
+    now=datetime(2026, 8, 2, 12, 2, tzinfo=timezone.utc),
+) is None
+```
+
+Proof Surface does not verify an external signature, prove nonce randomness or
+uniqueness, read a revocation store, or consume the budget. A trusted producer
+and consumer must perform those checks before product code runs, with ledger
+checks and consumption in one atomic operation. `actions_used` is an observed
+input to this pure checker, not a state mutation.
+
+Raw authorization JSON must cross a strict decoding boundary before signature
+verification or contract validation. `validate_authorization_receipt_v2_file`
+and `telos-proof validate` reject duplicate decoded keys, including escaped
+equivalents, plus `NaN` and infinities. A dict-only validator cannot recover
+duplicate-key evidence after a permissive caller has already parsed it. An
+integration that receives raw JSON must therefore use one of the strict file or
+CLI paths, or an equivalently strict decoder, before canonicalization.
+
 ---
 
 ## Example 3 -- pre-execution gate and evaluation contract
@@ -429,7 +481,20 @@ UNVERIFIABLE
 
 ## Conformance vectors
 
-Each contract ships valid and invalid fixtures under
-`conformance/<contract>/v0.1/` with a `manifest.json`. They are the canonical
+Each contract ships valid and invalid fixtures under its versioned
+`conformance/<contract>/<version>/` directory with a `manifest.json`. They are
+the canonical
 "what a good/bad document looks like" reference and are exercised by the test
 suite; read them alongside this guide when you need a concrete shape.
+
+Validate an authorization receipt or organ bundle from the command line:
+
+```bash
+python -m proof_surface.cli validate document.json
+```
+
+The command prints a typed JSON result. It returns 0 for `MATCH`, 1 for a known
+contract that is `UNVERIFIABLE`, and 2 when the document cannot be loaded or its
+contract cannot be identified. Ambiguous raw JSON, such as duplicate object
+keys or non-finite numeric constants, is a malformed document and returns the
+typed `UNVERIFIABLE` result with exit code 2.
