@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- Added the explicit authorization-receipt v0.2 inner contract while preserving
+  v0.1 fixtures, validation, and `check_action` behavior. The v0.2 structure
+  requires a stable receipt ID, a nonzero lowercase hexadecimal nonce with
+  at least 128 bits, exact agent/action/target strings, issued and expiry times,
+  a positive action budget, and a revocation flag. Unknown fields fail closed.
+  `check_action_v2` checks exact identity, scope, time, revocation, and observed
+  budget use. External signature trust and atomic consumption remain consumer
+  obligations. Separate schema, conformance, and migration fixtures make the
+  version boundary explicit.
+- Added `tadr-classification` and `tadr-control` to the organ bundle's closed
+  receipt-kind vocabulary. Bundle payload digests must now be nonzero 64-character
+  lowercase SHA-256 values; existing kinds and nonzero legacy digests remain
+  valid. The schema, validator, valid/invalid vectors, and manifest are pinned
+  together.
+- Added `telos-proof validate <document.json>` and the equivalent module command
+  for authorization v0.1/v0.2 receipts and organ bundles. The command emits a
+  typed JSON `MATCH` or `UNVERIFIABLE` result and fails closed on unknown input.
+
 - Added `learn-lesson` to the organ-bundle `RECEIPT_KINDS` closed set: the
   receipt kind for the organizational learning loop. A lesson entry composes
   onto the same spine every flagship already rides, carrying the lesson's

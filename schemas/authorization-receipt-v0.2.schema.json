@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harperz9.github.io/proof-surface/authorization-receipt-v0.2.schema.json",
+  "title": "Authorization Receipt v0.2",
+  "description": "An exactly scoped inner authorization receipt. Proof Surface validates structure and one proposed action. External signature trust, nonce uniqueness, revocation state, and atomic action consumption are separate obligations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "authorization_version",
+    "receipt_id",
+    "kind",
+    "nonce",
+    "agent_id",
+    "action",
+    "target",
+    "issued_at",
+    "expires_at",
+    "max_actions",
+    "revoked"
+  ],
+  "properties": {
+    "authorization_version": {"const": "0.2"},
+    "receipt_id": {"type": "string", "minLength": 1},
+    "kind": {"const": "authorization-grant"},
+    "nonce": {
+      "type": "string",
+      "pattern": "^(?!0+$)[0-9a-f]{32,}$",
+      "description": "Lowercase hexadecimal representation of at least 128 bits. Randomness and uniqueness are enforced by the producer and consuming store."
+    },
+    "agent_id": {"type": "string", "minLength": 1},
+    "action": {"type": "string", "minLength": 1},
+    "target": {"type": "string", "minLength": 1},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "max_actions": {"type": "integer", "minimum": 1},
+    "revoked": {"type": "boolean"},
+    "policy_ref": {"type": "string", "minLength": 1},
+    "notes": {"type": "string", "minLength": 1}
+  },
+  "$comment": "The reference validator also rejects forbidden authorization-suppression field names recursively and requires expires_at to be after issued_at."
+}

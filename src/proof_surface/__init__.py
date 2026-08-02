@@ -18,10 +18,15 @@ identity fabrication and privilege escalation). Stdlib-only.
 from ._validate import Issue
 from .authorization_receipt import (
     AUTHORIZATION_VERSION,
+    AUTHORIZATION_V2_RECEIPT_KIND,
+    AUTHORIZATION_V2_VERSION,
     RECEIPT_KIND,
     check_action,
+    check_action_v2,
     validate_authorization_receipt,
     validate_authorization_receipt_file,
+    validate_authorization_receipt_v2,
+    validate_authorization_receipt_v2_file,
 )
 from .packet import (
     PACKET_VERSION,
@@ -75,10 +80,15 @@ from .organ_receipt_bundle import (
 __all__ = [
     "Issue",
     "AUTHORIZATION_VERSION",
+    "AUTHORIZATION_V2_VERSION",
+    "AUTHORIZATION_V2_RECEIPT_KIND",
     "RECEIPT_KIND",
     "check_action",
+    "check_action_v2",
     "validate_authorization_receipt",
     "validate_authorization_receipt_file",
+    "validate_authorization_receipt_v2",
+    "validate_authorization_receipt_v2_file",
     "GATE_VERSION",
     "GateDecision",
     "evaluate_gate",

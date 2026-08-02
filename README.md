@@ -89,12 +89,13 @@ print(check_action(receipt, "delete_file", "repo:proof-surface", now=now))
 | proof-surface packet (`v0.1`) | `validate_packet` | Neutral evidence/index packet a proof-index consumes. |
 | work-record receipt (`v0.1`) | `validate_work_record` | Outward-flowing record of agent work; `additionalProperties: false` at every level, never read back as model state. |
 | authorization receipt (`v0.1`) | `validate_authorization_receipt`, `check_action` | Explicit, least-privilege, expiring, revocable grant from a human principal. Verifier input only. |
+| authorization receipt (`v0.2`) | `validate_authorization_receipt_v2`, `check_action_v2` | Exactly scoped inner receipt with agent, action, target, nonce, time window, revocation flag, and action budget. Signature trust and atomic consumption stay outside this library. |
 | witness receipt | `validate_witness_receipt` | Consumer-side mirror of EMET's witness-receipt shape and closed verdict lattice. |
 | pre-execution gate (`v0.1`) | `evaluate_gate`, `validate_gate_request` | Default-deny, fail-closed, advisory: allow / deny / needs-human with per-dimension checks. Any unconfirmable dimension escalates to needs-human. |
 | evaluation contract (`v0.1`) | `validate_evaluation_contract`, `evaluate` | Eval as a deploy gate: deploy / block / needs-human, uncertainty-aware (a measured value whose interval straddles its threshold never silently passes). |
 | claim ledger (`v0.1`) | `validate_claim_ledger`, `confidence_gate`, `find_conflicts`, `trace_dependents` | Traceable multi-agent memory: source-provided confidence, declared conflicts, cycle-safe contamination tracing. Reports provenance; does not adjudicate truth. |
 | delegation chain (`v0.1`) | `validate_delegation_chain`, `verify_delegation`, `compute_binding`, `compute_chain_binding` | Authority rooted in a real human, monotonic scope attenuation per hop, SHA-256 hash-chained with a whole-chain binding. Verdicts: `VALID` / `DENIED` / `UNVERIFIABLE`. |
-| organ receipt bundle (`v0.1`) | `validate_organ_receipt_bundle` | Interchange spine tying sibling receipts together by digest and reference; closed `receipt_kind` vocabulary, no embedded payloads. |
+| organ receipt bundle (`v0.1`) | `validate_organ_receipt_bundle` | Interchange spine tying sibling receipts together by nonzero digest and reference, including TADR classification and control receipts; closed `receipt_kind` vocabulary, no embedded payloads. |
 
 Integrity caveat, stated up front: the delegation hash-chain is keyless, so it gives self-consistent integrity, not tamper-evidence against an adversary who rewrites the document and recomputes every binding. Real anti-forgery needs an external anchor: pin `chain_binding` out-of-band or verify asymmetric signatures per hop. Demanding signature assurance with no verifier returns `UNVERIFIABLE`, never a fabricated `VALID`.
 

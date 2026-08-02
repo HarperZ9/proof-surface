@@ -32,6 +32,8 @@ EXPECTED_KINDS = FLAGSHIP_KINDS | {
     "proof-surface-gate",
     "provenance-receipt",
     "raw-health",
+    "tadr-classification",
+    "tadr-control",
 }
 
 
@@ -58,9 +60,9 @@ def _mixed_bundle() -> dict:
             _entry("forum", "orchestrator.forum", "forum-route"),
             _entry("index", "map.index", "index-context-envelope"),
             _entry("gather", "intake.gather", "gather-corpus"),
-                _entry("learn", "tutor.learn", "learn-receipt"),
-                _entry("lesson", "loop.flywheel", "learn-lesson"),
-                _entry("emet", "witness.emet", "emet-witness"),
+            _entry("learn", "tutor.learn", "learn-receipt"),
+            _entry("lesson", "loop.flywheel", "learn-lesson"),
+            _entry("emet", "witness.emet", "emet-witness"),
         ],
         "edges": [
             {"from": "gather", "to": "index", "relation": "derived-from"},

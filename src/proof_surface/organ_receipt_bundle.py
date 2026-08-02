@@ -4,7 +4,8 @@ The bundle ties RAW health receipts, EMET witness receipts, Sensorium provenance
 receipts, coherence observations, and proof-surface gate decisions together by
 digest and reference, and carries the flagship receipt kinds (crucible
 assessments, forum routes, index context envelopes, gather corpora, learn
-receipts) over the same spine. RECEIPT_KINDS stays a closed set: an entry
+receipts, and TADR classification/control receipts) over the same spine.
+RECEIPT_KINDS stays a closed set: an entry
 claiming any kind outside it is rejected. It intentionally does not embed heavy
 payloads or grant authority; it is a reviewer/tool handoff contract.
 """
@@ -33,6 +34,8 @@ RECEIPT_KINDS = {
     "proof-surface-gate",
     "provenance-receipt",
     "raw-health",
+    "tadr-classification",
+    "tadr-control",
 }
 ENTRY_STATUSES = {
     "allow",
@@ -73,6 +76,7 @@ ENTRY_FIELDS = {
 EDGE_FIELDS = {"from", "to", "relation"}
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_ZERO_SHA256 = "0" * 64
 
 
 def load_organ_receipt_bundle(path: Path) -> dict[str, Any]:
@@ -144,9 +148,16 @@ def _validate_entries(value: Any, issues: list[Issue]) -> set[str]:
         if "payload_ref" in item:
             require_text(item, "payload_ref", issues, f"{path}.payload_ref")
         digest = item.get("payload_sha256")
-        if not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest):
+        if (
+            not isinstance(digest, str)
+            or not _SHA256_RE.fullmatch(digest)
+            or digest == _ZERO_SHA256
+        ):
             issues.append(
-                Issue(f"{path}.payload_sha256", "expected 64-char lowercase hex sha256")
+                Issue(
+                    f"{path}.payload_sha256",
+                    "expected nonzero 64-char lowercase hex sha256",
+                )
             )
         entry_id = item.get("entry_id")
         if isinstance(entry_id, str) and entry_id.strip():
