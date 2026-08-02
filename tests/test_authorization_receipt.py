@@ -442,6 +442,49 @@ def test_v0_2_schema_and_stdlib_validator_accept_the_same_valid_fixture() -> Non
     assert ar.validate_authorization_receipt_v2(_v2()) == []
 
 
+def test_v0_2_schema_and_reference_validator_agree_on_all_manifest_vectors() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "schemas"
+        / "authorization-receipt-v0.2.schema.json"
+    )
+    schema_validator = jsonschema.Draft202012Validator(
+        json.loads(schema_path.read_text(encoding="utf-8"))
+    )
+    manifest = _v2("manifest.json")
+
+    for fixture in manifest["fixtures"]:
+        receipt = _v2(fixture["path"])
+        schema_valid = list(schema_validator.iter_errors(receipt)) == []
+        reference_valid = ar.validate_authorization_receipt_v2(receipt) == []
+        expected_valid = fixture["expected"] == "valid"
+        assert schema_valid == reference_valid == expected_valid, fixture["path"]
+
+
+def test_v0_2_schema_parity_negative_corpus() -> None:
+    jsonschema = pytest.importorskip("jsonschema")
+    schema_path = (
+        Path(__file__).resolve().parents[1]
+        / "schemas"
+        / "authorization-receipt-v0.2.schema.json"
+    )
+    schema_validator = jsonschema.Draft202012Validator(
+        json.loads(schema_path.read_text(encoding="utf-8"))
+    )
+    manifest = _v2("manifest.json")
+    corpus = _v2(manifest["schema_parity_corpus"])
+
+    for case in corpus["cases"]:
+        receipt = _v2(corpus["base"])
+        receipt[case["field"]] = case["value"]
+        schema_valid = list(schema_validator.iter_errors(receipt)) == []
+        reference_valid = ar.validate_authorization_receipt_v2(receipt) == []
+        assert case["expected"] == "invalid"
+        assert schema_valid is False, case["case_id"]
+        assert reference_valid is False, case["case_id"]
+
+
 def test_v0_2_exact_agent_action_and_target_match() -> None:
     receipt = _v2()
     assert (

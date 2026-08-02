@@ -103,6 +103,14 @@ FORBIDDEN_FIELDS = {
 _ISO8601_RE = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$"
 )
+_RFC3339_TIMEZONE_RE = re.compile(
+    r"^(?:(?:(?!0000)\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])"
+    r"|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|02-(?:0[1-9]|1\d|2[0-8])))"
+    r"|(?:(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])"
+    r"|(?:0[48]|[2468][048]|[13579][26])00)-02-29))"
+    r"T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?"
+    r"(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$"
+)
 _NONCE_RE = re.compile(r"^[0-9a-f]{32,}$")
 
 
@@ -228,13 +236,15 @@ def validate_authorization_receipt_v2(data: Any) -> list[Issue]:
     require_text(data, "action", issues)
     require_text(data, "target", issues)
     _validate_v2_nonce(data.get("nonce"), issues)
-    _validate_timestamp(data, "issued_at", issues)
-    _validate_timestamp(data, "expires_at", issues)
+    _validate_v2_timestamp(data, "issued_at", issues)
+    _validate_v2_timestamp(data, "expires_at", issues)
     _validate_v2_timestamp_ordering(data, issues)
     _validate_v2_max_actions(data.get("max_actions"), issues)
     _validate_revoked(data, issues)
-    _validate_optional_text(data.get("policy_ref"), "$.policy_ref", issues)
-    _validate_optional_text(data.get("notes"), "$.notes", issues)
+    if "policy_ref" in data:
+        _validate_optional_text(data["policy_ref"], "$.policy_ref", issues)
+    if "notes" in data:
+        _validate_optional_text(data["notes"], "$.notes", issues)
     return issues
 
 
@@ -272,8 +282,8 @@ def check_action_v2(
     if not isinstance(_now, datetime) or _now.utcoffset() is None:
         return Issue("$.issued_at", "action denied: invalid_now")
 
-    issued_at = _parse_iso8601(receipt["issued_at"])
-    expires_at = _parse_iso8601(receipt["expires_at"])
+    issued_at = _parse_rfc3339_timezone(receipt["issued_at"])
+    expires_at = _parse_rfc3339_timezone(receipt["expires_at"])
     if issued_at is None or _now < issued_at:
         return Issue("$.issued_at", "action denied: grant_not_active")
     if expires_at is None or _now >= expires_at:
@@ -438,15 +448,37 @@ def _validate_v2_max_actions(value: Any, issues: list[Issue]) -> None:
 def _validate_v2_timestamp_ordering(
     data: dict[str, Any], issues: list[Issue]
 ) -> None:
-    issued = _parse_iso8601(data.get("issued_at", ""))
-    expires = _parse_iso8601(data.get("expires_at", ""))
+    issued = _parse_rfc3339_timezone(data.get("issued_at", ""))
+    expires = _parse_rfc3339_timezone(data.get("expires_at", ""))
     if issued is not None and expires is not None and expires <= issued:
         issues.append(Issue("$.expires_at", "expires_at must be after issued_at"))
 
 
 def _validate_optional_text(value: Any, path: str, issues: list[Issue]) -> None:
-    if value is not None and (not isinstance(value, str) or not value.strip()):
+    if not isinstance(value, str) or not value.strip():
         issues.append(Issue(path, "expected non-empty string when present"))
+
+
+def _validate_v2_timestamp(
+    data: dict[str, Any], field: str, issues: list[Issue]
+) -> None:
+    if _parse_rfc3339_timezone(data.get(field)) is None:
+        issues.append(
+            Issue(
+                f"$.{field}",
+                "expected RFC3339 datetime string with explicit timezone",
+            )
+        )
+
+
+def _parse_rfc3339_timezone(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not _RFC3339_TIMEZONE_RE.fullmatch(value):
+        return None
+    normalized = value.replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
 
 
 def _parse_iso8601(value: str) -> datetime | None:

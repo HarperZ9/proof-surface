@@ -25,6 +25,7 @@ Run the local package gate before publishing:
 
 ```sh
 python -m pip install -e ".[test]"
+python scripts/check_public_surface.py
 python -m pytest
 ```
 

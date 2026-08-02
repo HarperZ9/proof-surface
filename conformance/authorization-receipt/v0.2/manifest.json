@@ -19,6 +19,7 @@
       "reason": "Unknown root fields fail closed."
     }
   ],
+  "schema_parity_corpus": "schema-parity.corpus.json",
   "migration": {
     "legacy_path": "../v0.1/valid/minimal.receipt.json",
     "legacy_sha256": "3ea68f2c2c4b40c64054cb1b348431859355252b1690fc2f2e6080bab86fba71",

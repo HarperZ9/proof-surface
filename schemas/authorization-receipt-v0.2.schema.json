@@ -20,22 +20,30 @@
   ],
   "properties": {
     "authorization_version": {"const": "0.2"},
-    "receipt_id": {"type": "string", "minLength": 1},
+    "receipt_id": {"type": "string", "pattern": "\\S"},
     "kind": {"const": "authorization-grant"},
     "nonce": {
       "type": "string",
       "pattern": "^(?!0+$)[0-9a-f]{32,}$",
       "description": "Lowercase hexadecimal representation of at least 128 bits. Randomness and uniqueness are enforced by the producer and consuming store."
     },
-    "agent_id": {"type": "string", "minLength": 1},
-    "action": {"type": "string", "minLength": 1},
-    "target": {"type": "string", "minLength": 1},
-    "issued_at": {"type": "string", "format": "date-time"},
-    "expires_at": {"type": "string", "format": "date-time"},
+    "agent_id": {"type": "string", "pattern": "\\S"},
+    "action": {"type": "string", "pattern": "\\S"},
+    "target": {"type": "string", "pattern": "\\S"},
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:(?!0000)\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|02-(?:0[1-9]|1\\d|2[0-8])))|(?:(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00)-02-29))T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:(?!0000)\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|02-(?:0[1-9]|1\\d|2[0-8])))|(?:(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:0[48]|[2468][048]|[13579][26])00)-02-29))T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$"
+    },
     "max_actions": {"type": "integer", "minimum": 1},
     "revoked": {"type": "boolean"},
-    "policy_ref": {"type": "string", "minLength": 1},
-    "notes": {"type": "string", "minLength": 1}
+    "policy_ref": {"type": "string", "pattern": "\\S"},
+    "notes": {"type": "string", "pattern": "\\S"}
   },
   "$comment": "The reference validator also rejects forbidden authorization-suppression field names recursively and requires expires_at to be after issued_at."
 }

@@ -63,6 +63,7 @@ def test_public_and_developer_delivery_files_exist() -> None:
         "AGENTS.md",
         ".github/FUNDING.yml",
         ".github/workflows/ci.yml",
+        "scripts/check_public_surface.py",
         "docs/brand/proof-surface-hero.png",
         "project-docs/specs/SPEC-proof-surface-forward-delivery.md",
     ]

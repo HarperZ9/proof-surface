@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Added a stdlib-only tracked public-surface gate and wired it into CI. It uses
+  Git's tracked-file list, excludes tests, caches, Git metadata, and build
+  roots, and reports deterministic locations without echoing matched secret
+  values. Machine paths, credential/private-key material, encoding corruption,
+  unresolved template markers, unsupported private-tree references, and new or
+  grown em-dash use fail closed. Existing v0.1 fixture paths and package README
+  punctuation debt are count-bounded so the gate can burn down but not grow.
+- Aligned the authorization v0.2 JSON Schema with the reference validator for
+  trimmed nonempty strings, explicit-timezone RFC3339 timestamps, JSON boolean
+  and integer edge cases, nonce shape, action budgets, and unknown fields. A
+  checked-in 24-case negative parity corpus and every manifest fixture now run
+  through both validators.
+
 - Added the explicit authorization-receipt v0.2 inner contract while preserving
   v0.1 fixtures, validation, and `check_action` behavior. The v0.2 structure
   requires a stable receipt ID, a nonzero lowercase hexadecimal nonce with
