@@ -28,6 +28,7 @@ RECEIPT_KINDS = {
     "forum-route",
     "gather-corpus",
     "index-context-envelope",
+    "learn-lesson",
     "learn-receipt",
     "proof-surface-gate",
     "provenance-receipt",
