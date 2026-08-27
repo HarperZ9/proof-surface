@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 
+from proof_surface._bundle import verify_receipts
 from proof_surface.agent_action.cli import main
+from proof_surface.cli import main as proof_main
 
 _AUTH = {
     "authorization_version": "0.1",
@@ -94,3 +96,84 @@ def test_bundle_hash_is_deterministic(tmp_path):
     a = _run(tmp_path, "out-a")
     b = _run(tmp_path, "out-b")
     assert a["bundle_hash"] == b["bundle_hash"]
+
+
+def _blob(iss):
+    return iss.path + " " + iss.message
+
+
+def test_verify_receipts_accepts_an_untampered_bundle(tmp_path):
+    _run(tmp_path, "out")
+    assert verify_receipts(tmp_path / "out") == []
+
+
+def test_verify_receipts_catches_a_mutated_artifact(tmp_path):
+    _run(tmp_path, "out")
+    report = tmp_path / "out" / "report.md"
+    report.write_text(report.read_text(encoding="utf-8") + "\ntamper\n", encoding="utf-8")
+    issues = verify_receipts(tmp_path / "out")
+    assert any("report.md" in _blob(i) for i in issues)
+
+
+def test_verify_receipts_catches_a_tampered_recorded_digest(tmp_path):
+    _run(tmp_path, "out")
+    bundle_path = tmp_path / "out" / "bundle.json"
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    bundle["files"][0]["sha256"] = "b" * 64
+    bundle_path.write_text(json.dumps(bundle, indent=2) + "\n", encoding="utf-8")
+    issues = verify_receipts(tmp_path / "out")
+    name = bundle["files"][0]["name"]
+    assert any(name in _blob(i) for i in issues)
+
+
+def test_verify_receipts_catches_a_tampered_bundle_hash(tmp_path):
+    _run(tmp_path, "out")
+    bundle_path = tmp_path / "out" / "bundle.json"
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    bundle["bundle_hash"] = "c" * 64
+    bundle_path.write_text(json.dumps(bundle, indent=2) + "\n", encoding="utf-8")
+    issues = verify_receipts(tmp_path / "out")
+    assert any("bundle_hash" in i.path for i in issues)
+
+
+def test_verify_receipts_catches_a_missing_artifact(tmp_path):
+    _run(tmp_path, "out")
+    (tmp_path / "out" / "report.md").unlink()
+    issues = verify_receipts(tmp_path / "out")
+    assert any("report.md" in _blob(i) for i in issues)
+
+
+def test_verify_receipts_reports_a_missing_bundle(tmp_path):
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    issues = verify_receipts(empty)
+    assert any("bundle.json" in _blob(i) for i in issues)
+
+
+def test_cli_verify_reports_match_on_a_clean_bundle(tmp_path, capsys):
+    _run(tmp_path, "out")
+    capsys.readouterr()
+    rc = proof_main(["verify", str(tmp_path / "out")])
+    result = json.loads(capsys.readouterr().out)
+    assert rc == 0
+    assert result["verdict"] == "MATCH"
+
+
+def test_cli_verify_reports_drift_on_a_tampered_artifact(tmp_path, capsys):
+    _run(tmp_path, "out")
+    (tmp_path / "out" / "report.md").write_text("tampered", encoding="utf-8")
+    capsys.readouterr()
+    rc = proof_main(["verify", str(tmp_path / "out")])
+    result = json.loads(capsys.readouterr().out)
+    assert rc == 1
+    assert result["verdict"] == "DRIFT"
+    assert result["issues"]
+
+
+def test_cli_verify_reports_unverifiable_without_a_manifest(tmp_path, capsys):
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    rc = proof_main(["verify", str(empty)])
+    result = json.loads(capsys.readouterr().out)
+    assert rc == 2
+    assert result["verdict"] == "UNVERIFIABLE"

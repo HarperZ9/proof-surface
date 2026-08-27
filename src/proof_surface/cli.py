@@ -15,6 +15,7 @@ import json
 import sys
 from pathlib import Path
 
+from ._bundle import verify_receipts
 from ._strict_json import strict_json_load
 from .authorization_receipt import (
     validate_authorization_receipt,
@@ -41,7 +42,8 @@ def _usage() -> str:
     domains = "\n".join(f"    telos-proof {name} ..." for name in sorted(_DOMAINS))
     return (
         "usage: telos-proof <domain> [options]\n"
-        "       telos-proof validate <document.json>\n\n"
+        "       telos-proof validate <document.json>\n"
+        "       telos-proof verify <artifact-dir>\n\n"
         "domains:\n" + domains
     )
 
@@ -89,6 +91,16 @@ def _validation_result(path: Path) -> tuple[int, dict]:
     }
 
 
+def _verify_result(directory: Path) -> tuple[int, dict]:
+    issues = verify_receipts(directory)
+    payload = [{"path": issue.path, "message": issue.message} for issue in issues]
+    if any(issue.path == "$.bundle.json" for issue in issues):
+        return 2, {"verdict": "UNVERIFIABLE", "reason": "no_manifest", "issues": payload}
+    if issues:
+        return 1, {"verdict": "DRIFT", "issues": payload}
+    return 0, {"verdict": "MATCH", "issues": payload}
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
@@ -113,6 +125,19 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 2
         exit_code, result = _validation_result(Path(argv[1]))
+        print(json.dumps(result, sort_keys=True))
+        return exit_code
+
+    if argv[0] == "verify":
+        if len(argv) != 2:
+            print(
+                json.dumps(
+                    {"verdict": "UNVERIFIABLE", "reason": "usage", "issues": []},
+                    sort_keys=True,
+                )
+            )
+            return 2
+        exit_code, result = _verify_result(Path(argv[1]))
         print(json.dumps(result, sort_keys=True))
         return exit_code
 
