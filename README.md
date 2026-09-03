@@ -1,4 +1,4 @@
-<p align="center"><img src=".github/assets/zentropy-banner.png" alt="proof-surface: One proof packet per agent action. Verdicts are derived from checks, never read from the packet." width="100%"></p>
+<p align="center"><img src="docs/art/proof-surface-header.svg" alt="Proof Surface" width="100%"></p>
 
 **One proof packet per agent action. Verdicts are derived from checks, never read from the packet.**
 
@@ -99,9 +99,13 @@ print(check_action(receipt, "delete_file", "repo:proof-surface", now=now))
 
 Integrity caveat, stated up front: the delegation hash-chain is keyless, so it gives self-consistent integrity, not tamper-evidence against an adversary who rewrites the document and recomputes every binding. Real anti-forgery needs an external anchor: pin `chain_binding` out-of-band or verify asymmetric signatures per hop. Demanding signature assurance with no verifier returns `UNVERIFIABLE`, never a fabricated `VALID`.
 
+![Eight stages of a single gate evaluation: request, shape, reserved names, authorization, budget, state, human gap, and aggregate. A request describes one planned action with its kind, its target and an estimated cost in tokens and wall time. Five fields are allowed at the root and any other field is refused. Reserved names are rejected at every level of the object rather than only at the top, so a forbidden key cannot hide inside a nested block. Four checks then run: authorization, budget, state and the human gap. Each check returns one of four values: pass, fail, unknown, or not applicable. The state check reads a witness verdict from a closed set of seven, of which only three count as confirming, alongside a target digest and the digest that was expected. The aggregate is not a vote. One failure anywhere denies the action; with no failure but any unknown the answer is that a person still has to look; allow requires authorization to pass outright and the other three to pass or not apply. Three outcomes: allow, deny, and needs human.](docs/art/gate-lane.svg)
+
 ## The proof-packet wedges
 
 Each wedge is a builder, a validator, a reviewer-facing report, and a CLI, sharing one verdict rule (`MATCH` / `DRIFT` / `UNVERIFIABLE`), a required decision summary, a non-promotion boundary, and a content-addressed bundle.
+
+![Eight stages of one domain run: evidence, wedge, contract, honesty gate, measure, combine, decide, and bundle. Evidence starts as a trace, a run record or a measurement already on disk. One command routes it to one of eleven domain wedges, each of which owns its own arguments. The contract rejects unknown fields rather than ignoring them, so an unrecognised document is unverifiable rather than valid. Each wedge then applies its own refusal, the rule that stops that domain's characteristic overclaim. Measurement is a margin: tolerance minus deviation, over tolerance, matching if that margin is at or above zero. The combination is not an average. Unverifiable dominates, then drift, and an empty set reads as a match because there is nothing to refute. One decision follows from the overall verdict, with a closed vocabulary of seven outcomes and three confidence levels, defaulting to escalate when the verdict is not recognised. Four artifacts are written and hashed into one manifest, which records a digest per file and a digest over those digests. Three outcomes: match, drift, and unverifiable.](docs/art/packet-lane.svg)
 
 | Wedge | Turns this into a packet | Load-bearing honesty gate |
 | --- | --- | --- |
@@ -118,6 +122,8 @@ Each wedge is a builder, a validator, a reviewer-facing report, and a CLI, shari
 | `competition-attempt` | a competition / judge attempt | source-pinned judge repo; verdicts cite only certificate layers that executed |
 
 Optional disclosure fields ride the same spine and are held honest when present: `declared_branches[]` (a fenced branch claims no verdict and is not citable support), `witness_tier` (the promotion rung may not exceed the strongest verifier tier that executed), `evidence_classes[]` (single-modality evidence caps at the hypothesis rung), and `replication` (a generalization claim needs two or more independent `MATCH` instances). Omit them and a packet validates unchanged.
+
+![Eleven domain wedges, one to a row, each with the overclaim it refuses and the rule that does the refusing. Agent action binds every material action to one admission and one side-effect class. Visual measurement blocks a calibration claim from a read-only surface. Research claim stops tier inflation from a fenced branch or a single modality. Model eval is default-deny on promotion. Optimization workflow blocks a hardware or quantum claim without a completed hardware branch. Rollout receipt keeps reward, verdict, admission and promotion as four separate records. Eval attempt is accented, because it is the one row where a correct answer is refused: a correct outcome recorded alongside ground-truth access is contamination rather than a pass. AI for science gates each promotion rung on measurement, independent reproduction and settled objections. Conservation requires a negative fixture that provably breaks the invariant. Control certificate requires every condition of its kind to be witnessed and blocks hardware validity from simulation. Competition attempt allows the overall verdict to cite only layers that executed.](docs/art/wedge-refusals.svg)
 
 ## Status
 
