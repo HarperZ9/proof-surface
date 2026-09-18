@@ -13,10 +13,10 @@ inputs and reviewer-facing outputs**.
 
 ## Install
 
-From source (no runtime dependencies):
+From a checkout (no runtime dependencies):
 
 ```bash
-pip install .
+python -m pip install -e .
 ```
 
 Or run straight from a checkout without installing, by putting `src/` on the
@@ -32,6 +32,94 @@ The test extra pulls in `pytest` and `jsonschema`:
 pip install ".[test]"
 pytest
 ```
+
+There is no documented PyPI release path in this repository. Use the checkout
+or an internal package built from this source tree.
+
+## CLI entrypoints
+
+The installed console scripts are declared in `pyproject.toml` under
+`[project.scripts]`.
+
+| Entrypoint | Module | What it does |
+| --- | --- | --- |
+| `telos-proof` | `proof_surface.cli:main` | Unified dispatcher for domain proof packets, contract validation, and bundle verification. |
+| `proof-surface-agent-action` | `proof_surface.agent_action.cli:main` | Build/review an agent-action proof packet. |
+| `proof-surface-visual-measurement` | `proof_surface.visual_measurement.cli:main` | Build/review a visual-measurement packet. |
+| `proof-surface-research-claim` | `proof_surface.research_claim.cli:main` | Build/review a research-claim packet. |
+| `proof-surface-model-eval` | `proof_surface.model_eval.cli:main` | Build/review a model-eval packet. |
+| `proof-surface-optimization` | `proof_surface.optimization_workflow.cli:main` | Build/review an optimization-workflow packet. |
+| `proof-surface-rollout-receipt` | `proof_surface.rollout_receipt.cli:main` | Build/review a rollout-receipt packet. |
+| `proof-surface-eval-attempt` | `proof_surface.eval_attempt.cli:main` | Build/review a benchmark-attempt packet. |
+| `proof-surface-ai4science` | `proof_surface.ai4science.cli:main` | Build/review an AI-for-science packet. |
+| `proof-surface-conservation` | `proof_surface.conservation.cli:main` | Build/review a conservation packet. |
+| `proof-surface-control-certificate` | `proof_surface.control_certificate.cli:main` | Build/review a control-certificate packet. |
+| `proof-surface-competition-attempt` | `proof_surface.competition_attempt.cli:main` | Build/review a competition-attempt packet. |
+
+Module entrypoints are available without installing scripts:
+
+```bash
+PYTHONPATH=src python -m proof_surface --help
+PYTHONPATH=src python -m proof_surface.agent_action --help
+```
+
+The unified dispatcher also has two non-domain commands:
+
+```bash
+telos-proof validate path/to/document.json
+telos-proof verify path/to/artifact-directory
+```
+
+`validate` currently recognizes authorization receipts v0.1/v0.2 and organ
+receipt bundles v0.1. Unknown contracts return `UNVERIFIABLE`.
+
+## Minimal quickstart
+
+```bash
+python -m pip install -e ".[test]"
+telos-proof --help
+telos-proof validate examples/agent_action/authorization.json
+telos-proof visual-measurement \
+  --input examples/visual_measurement/measurement.json \
+  --claim "sRGB coverage measured on a read-only capture" \
+  --scope "software capture only, no hardware probe" \
+  --out ./demo-out
+telos-proof verify ./demo-out
+```
+
+The domain command writes `packet.json`, `report.md`, `bundle.json`, and the
+Crucible peer files into `./demo-out`.
+
+## Configuration
+
+Proof Surface has no service configuration, credentials, native dispatch, or
+network setup. Inputs are local JSON files and output directories supplied on
+the command line. Use environment variables only for normal Python packaging
+concerns such as `PYTHONPATH=src` when running without installation.
+
+For reproducible checks, keep input examples and generated artifact directories
+inside a temporary or ignored path. Do not commit private payloads, credentials,
+or local receipts.
+
+## Troubleshooting
+
+- `telos-proof: command not found`: install the checkout with
+  `python -m pip install -e .`, or run `PYTHONPATH=src python -m proof_surface`.
+- `UNVERIFIABLE` from `validate`: the document is malformed, is not an object,
+  or is a contract the dispatcher does not recognize.
+- `DRIFT` from `verify`: the artifact directory has a bundle but one or more
+  receipt checks no longer match.
+- `UNVERIFIABLE` from `verify`: the artifact directory is missing the bundle
+  manifest or cannot be read.
+- Import errors while running tests: install the test extra with
+  `python -m pip install -e ".[test]"`.
+
+## Limitations
+
+Proof Surface validates records and produces reviewer-facing artifacts. It does
+not grant authority, execute actions, contact providers, store private payloads,
+or prove a scientific claim true outside the evidence and scope supplied to the
+packet.
 
 ## The public surface at a glance
 
