@@ -175,12 +175,12 @@ The long form of this belief: [The Unbundling](https://github.com/HarperZ9/flywh
 
 ---
 
-**[Zentropy Labs](https://github.com/ZentropyLabs-ai)** · order out of entropy. An independent lab building evidence-first tools that leave a re-checkable artifact behind. Built by Zain Dana Harper in Seattle. The full workbench is at [Project Telos](https://harperz9.github.io).
+Built by **[Zain Dana Harper](https://harperz9.github.io)** in Seattle: evidence-first tools that leave a re-checkable artifact behind. The full workbench is at [Project Telos](https://harperz9.github.io).
 
 
 ---
 
-## The Zentropy Labs ecosystem
+## The ecosystem
 
 This tool is one part of a family that holds a single belief steady across
 every surface: knowledge open to anyone who can attain the means; acceptance
@@ -192,4 +192,4 @@ into the work.
 - **[Flywheel](https://github.com/HarperZ9/flywheel)**: the one platform (receipts, governance, infra controls, learning loop)
 - **[Getting Started](https://github.com/HarperZ9/flywheel/blob/main/GETTING-STARTED.md)**: your first thirty minutes
 
-**[Zentropy Labs](https://github.com/ZentropyLabs-ai)** - order out of entropy. Built by Zain Dana Harper in Seattle.
+Built by **[Zain Dana Harper](https://harperz9.github.io)** in Seattle.
