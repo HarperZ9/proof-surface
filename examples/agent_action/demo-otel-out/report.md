@@ -1,4 +1,4 @@
-# Agent-Action Proof Packet `Xemo-otel`
+# Agent-Action Proof Packet `demo-otel`
 
 **Verdict: MATCH** -- demo
 
