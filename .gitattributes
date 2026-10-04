@@ -1,2 +1,5 @@
 conformance/**/*.receipt.json binary
 conformance/**/*.json binary
+# The demo bundle is sealed by bundle.json over the exact committed bytes. -text keeps
+# a core.autocrlf=true checkout from rewriting LF to CRLF and breaking every digest.
+examples/agent_action/demo-otel-out/** -text
