@@ -1,12 +1,19 @@
-<p align="center"><img src="docs/art/proof-surface-header.svg" alt="Proof Surface" width="100%"></p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/HarperZ9/proof-surface/main/docs/art/hero-dark.svg">
+  <img src="https://raw.githubusercontent.com/HarperZ9/proof-surface/main/docs/art/hero-light.svg" alt="proof-surface: One proof packet per agent action, with verdicts derived from checks. A chain of small linked squares, each holding a few ruled lines, winds inward to a bright core." width="100%">
+</picture>
 
-**One proof packet per agent action. Verdicts are derived from checks, never read from the packet.**
+# proof-surface
 
-![version](https://img.shields.io/badge/version-0.2.0-99f147?style=flat-square&labelColor=14041b)
-![license: MIT](https://img.shields.io/badge/license-MIT-8f8095?style=flat-square&labelColor=14041b)
+One proof packet per agent action, with verdicts derived from checks.
+
+```
+python -m pip install -e ".[test]"
+```
+
 [![CI](https://github.com/HarperZ9/proof-surface/actions/workflows/ci.yml/badge.svg)](https://github.com/HarperZ9/proof-surface/actions/workflows/ci.yml)
-![python](https://img.shields.io/badge/python-3.11%2B-blue?style=flat-square&labelColor=14041b)
-![deps: none](https://img.shields.io/badge/deps-none-success?style=flat-square&labelColor=14041b)
+[![license](https://img.shields.io/badge/license-MIT-e6e1d6?style=flat-square&labelColor=1a1712)](https://github.com/HarperZ9/proof-surface/blob/main/LICENSE)
+![python 3.10+](https://img.shields.io/badge/python-3.10%2B-e6e1d6?style=flat-square&labelColor=1a1712)
 
 Proof Surface is a stdlib-only Python library of contract validators for AI workflow records: evidence packets, work receipts, pre-execution gates, claim ledgers, delegation chains, and evaluation contracts. On top sits a family of eleven domain proof-packet wedges that take evidence a tool already produces (an agent trace, a color measurement, a benchmark attempt, a solver run, a scientific claim) and turn it into a validated, re-derivable packet with a `MATCH` / `DRIFT` / `UNVERIFIABLE` verdict, all reachable through one CLI seam: `telos-proof <domain>`. Every packet can be re-checked by anyone, without trusting the producer.
 
@@ -176,7 +183,6 @@ The long form of this belief: [The Unbundling](https://github.com/HarperZ9/flywh
 ---
 
 Built by **[Zain Dana Harper](https://harperz9.github.io)** in Seattle: evidence-first tools that leave a re-checkable artifact behind. The full workbench is at [Project Telos](https://harperz9.github.io).
-
 
 ---
 
