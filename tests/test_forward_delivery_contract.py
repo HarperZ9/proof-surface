@@ -64,7 +64,7 @@ def test_public_and_developer_delivery_files_exist() -> None:
         ".github/FUNDING.yml",
         ".github/workflows/ci.yml",
         "scripts/check_public_surface.py",
-        "docs/brand/proof-surface-hero.png",
+        "docs/art/social.png",
         "project-docs/specs/SPEC-proof-surface-forward-delivery.md",
     ]
 
@@ -76,7 +76,7 @@ def test_readme_serves_public_and_developer_audiences() -> None:
 
     for heading in ["## Try it", "## Why it matters", "## For developers"]:
         assert heading in text
-    assert "docs/brand/proof-surface-hero.png" in text
+    assert "docs/art/hero-light.svg" in text
     assert "validate evidence packets" in text.lower()
     assert "USAGE.md" in text
     assert "CHANGELOG.md" in text
