@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- CI now checks the committed demo proof bundle on Ubuntu and on Windows with
+  `core.autocrlf=true`. Its digests were resealed over the committed LF bytes
+  and the bundle folder is pinned with `-text`; see `RESEAL.md`.
 - Added a stdlib-only tracked public-surface gate and wired it into CI. It uses
   Git's tracked-file list, excludes caches, Git metadata, and build roots, and
   reports deterministic locations without echoing matched secret values. Every
