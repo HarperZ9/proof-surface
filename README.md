@@ -23,6 +23,44 @@ The [animated explainer](https://harperz9.github.io/repo-explainers/proof-surfac
 walks through an authorization receipt allowing one read and denying everything else with the deciding field, the pre-execution gate allowing and escalating, a delegation chain, a visual-measurement proof packet from the shipped example, and the calibration gate rejecting an inflated claim. Every value on it is output from this repository. Its
 source is [docs/explainer/index.html](docs/explainer/index.html).
 
+## Watch
+
+[![A passing check can still be wrong: a narrated film, 2 min 24 s](https://harperz9.github.io/media/explainers/passing-check/poster.jpg)](https://harperz9.github.io/explainers.html#passing-check-h)
+
+**[A passing check can still be wrong](https://harperz9.github.io/explainers.html#passing-check-h)** (2 min 24 s, narrated, captioned). Proof Surface refuses a packet whose claim outruns its measurement. The film page carries the transcript, the sources and recall questions.
+
+Video walkthrough: coming with the next release.
+
+## Walkthrough
+
+Install it, run it once, then use the main feature. Each command below is real, and so is its output.
+
+1. **Install.** Install from a checkout. Python 3.10 or newer.
+
+   ```text
+   $ git clone https://github.com/HarperZ9/proof-surface && cd proof-surface
+   $ python -m pip install -e ".[test]"
+   ```
+
+2. **First run: the demo.** The demo gates the same action with and without a budget.
+
+   ```text
+   $ python examples/demo.py
+   with budget       : allow
+   without budget    : needs-human
+   ```
+
+3. **Build a proof packet from a measurement.** Turn a real measurement into a packet with a stated claim and scope.
+
+   ```text
+   $ telos-proof visual-measurement --input examples/visual_measurement/measurement.json --claim "sRGB coverage measured on a read-only capture" --scope "software capture only, no hardware probe" --out ./demo-out
+   | delta_e_2000_mean | 1.42 dE | 0.0 | 1.42 | 2.0 | MATCH |
+   | white_luminance | 118.0 cd/m2 | 120.0 | 2.0 | 5.0 | MATCH |
+   Calibration boundary: hardware_measurement_used=False, physical_calibration_claim=False
+   bundle.json  crucible-assessment.json  crucible-measurements.json
+   crucible-thesis.json  packet.json  report.md
+   ```
+
 ## Highlights
 
 - **Eleven domain wedges, one CLI.** `telos-proof agent-action`, `visual-measurement`, `research-claim`, `model-eval`, `optimization-workflow`, `rollout-receipt`, `eval-attempt`, `ai4science`, `conservation`, `control-certificate`, `competition-attempt`. Same mental model everywhere: evidence in, validated packet plus reviewer report out.
