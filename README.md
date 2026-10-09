@@ -17,6 +17,12 @@ python -m pip install -e ".[test]"
 
 Proof Surface is a stdlib-only Python library of contract validators for AI workflow records: evidence packets, work receipts, pre-execution gates, claim ledgers, delegation chains, and evaluation contracts. On top sits a family of eleven domain proof-packet wedges that take evidence a tool already produces (an agent trace, a color measurement, a benchmark attempt, a solver run, a scientific claim) and turn it into a validated, re-derivable packet with a `MATCH` / `DRIFT` / `UNVERIFIABLE` verdict, all reachable through one CLI seam: `telos-proof <domain>`. Every packet can be re-checked by anyone, without trusting the producer.
 
+## See it work, step by step
+
+The [animated explainer](https://harperz9.github.io/repo-explainers/proof-surface.html)
+walks through an authorization receipt allowing one read and denying everything else with the deciding field, the pre-execution gate allowing and escalating, a delegation chain, a visual-measurement proof packet from the shipped example, and the calibration gate rejecting an inflated claim. Every value on it is output from this repository. Its
+source is [docs/explainer/index.html](docs/explainer/index.html).
+
 ## Highlights
 
 - **Eleven domain wedges, one CLI.** `telos-proof agent-action`, `visual-measurement`, `research-claim`, `model-eval`, `optimization-workflow`, `rollout-receipt`, `eval-attempt`, `ai4science`, `conservation`, `control-certificate`, `competition-attempt`. Same mental model everywhere: evidence in, validated packet plus reviewer report out.
