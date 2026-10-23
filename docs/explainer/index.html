@@ -175,9 +175,9 @@ ol.walkthrough p{margin:0 0 .3rem;max-width:44rem}
   </div>
   <ul class="uses">
     <li><b>Default-deny checks</b>A revoked grant, an expired window or an out-of-scope action all deny, with the field that decided it.</li>
-    <li><b>Unknown means a person looks</b>A gate check that cannot be confirmed escalates to needs-human and never passes.</li>
+    <li><b>Unknown means a person looks</b>A gate check that returns unknown escalates to needs-human, and a person decides.</li>
     <li><b>Packets you can recompute</b>Each wedge writes the packet, a report and crucible inputs so a checker re-derives the verdict.</li>
-    <li><b>No authority words</b>Validators reject authority-shaped fields; the library records evidence and grants nothing.</li>
+    <li><b>Evidence, kept apart from authority</b>Validators reject authority-shaped fields. The library records evidence, and permission stays with the people who grant it.</li>
   </ul>
   <p class="src">Source: <a href="https://github.com/HarperZ9/proof-surface/blob/3d5d945c758dcb78ca0c0aef196bfd4bc43a2d9a/README.md">README.md</a> at 3d5d945 (version 0.2.0)</p>
 </section>
@@ -216,7 +216,7 @@ ol.walkthrough p{margin:0 0 .3rem;max-width:44rem}
     <ol class="steps">
       <li class="step" tabindex="-1" data-scene="k0" data-state="s"><div class="card">
         <span class="num">01</span><h3>A grant to read, and nothing else</h3>
-        <p>Alice grants an agent permission to <code>read_file</code> on <code>repo:proof-surface</code>, from 17 to 19 June 2026. The receipt validates with no issues. <code>check_action</code> on 18 June allows a read: it returns nothing.</p>
+        <p>Alice grants an agent permission to <code>read_file</code> on <code>repo:proof-surface</code>, from 17 to 19 June 2026. The receipt validates with an empty issue list. <code>check_action</code> on 18 June allows a read by returning <code>None</code>.</p>
         <p class="src">Source: README.md, "Worked example"; <a href="https://github.com/HarperZ9/proof-surface/blob/3d5d945c758dcb78ca0c0aef196bfd4bc43a2d9a/src/proof_surface/__init__.py">src/proof_surface/__init__.py</a></p>
       </div></li>
       <li class="step" tabindex="-1" data-scene="k1" data-state="s"><div class="card">
@@ -227,25 +227,25 @@ ol.walkthrough p{margin:0 0 .3rem;max-width:44rem}
       </div></li>
       <li class="step" tabindex="-1" data-scene="k2" data-state="s"><div class="card">
         <span class="num">03</span><h3>A gate before the action runs</h3>
-        <p><code>evaluate_gate</code> takes one planned action and runs four checks: authorization, budget, state and the human gap. Each returns pass, fail, unknown or not applicable.</p>
-        <p>The aggregate is not a vote. Any fail denies. With no fail but any unknown, a person has to look. Allow needs authorization to pass outright. Drop the budget estimate and the same request escalates.</p>
+        <p><code>evaluate_gate</code> takes one planned action and runs four checks: authorization, budget, state and the human gap. Each check returns a result from a fixed set of four: pass, fail, unknown or not-applicable. The panel shows the result of each check for the request you pick.</p>
+        <p>The aggregate follows a fixed order. Any fail denies. Otherwise any unknown sends it to a person. Allow needs authorization to pass outright. Drop the budget estimate and the same request escalates.</p>
         <p class="src">Source: <a href="https://github.com/HarperZ9/proof-surface/blob/3d5d945c758dcb78ca0c0aef196bfd4bc43a2d9a/src/proof_surface/pre_execution_gate.py">src/proof_surface/pre_execution_gate.py</a>, <code>evaluate_gate</code></p>
       </div></li>
       <li class="step" tabindex="-1" data-scene="k3" data-state="s"><div class="card">
         <span class="num">04</span><h3>Delegation that can only narrow</h3>
-        <p>A delegation chain roots authority in a real person, and each hop can only narrow the scope. The demo's chain verifies VALID for an in-scope action and DENIED for one outside it.</p>
+        <p>A delegation chain roots authority in a real person, and each hop can narrow the scope and keep it narrower. The demo's chain verifies VALID for an in-scope action and DENIED for one outside it.</p>
         <p>Asked for signature assurance with no verifier available, it returns UNVERIFIABLE. The chain is hash-linked but keyless, so it shows self-consistency. Tamper evidence against someone who rewrites every hash needs an external anchor.</p>
         <p class="src">Source: <a href="https://github.com/HarperZ9/proof-surface/blob/3d5d945c758dcb78ca0c0aef196bfd4bc43a2d9a/src/proof_surface/delegation_chain.py">src/proof_surface/delegation_chain.py</a>; README.md, "The base contracts"</p>
       </div></li>
       <li class="step" tabindex="-1" data-scene="k4" data-state="s"><div class="card">
         <span class="num">05</span><h3>A proof packet from a real measurement</h3>
         <p>The visual-measurement wedge takes a capture's measurements: a mean Delta E 2000 of 1.42 against a tolerance of 2.0, and a white luminance of 118 cd/m2 against a target of 120 with a tolerance of 5. Both are within tolerance, so the packet reads MATCH.</p>
-        <p>It writes six files: the packet, a report, a content-addressed bundle, and the crucible thesis, measurements and assessment for an independent recheck. The packet is read-only and makes no physical-calibration claim.</p>
+        <p>It writes six files: the packet, a report, a content-addressed bundle, and the crucible thesis, measurements and assessment for an independent recheck. The packet is a read-only capture, and its calibration boundary says so.</p>
         <p class="src">Source: <a href="https://github.com/HarperZ9/proof-surface/blob/3d5d945c758dcb78ca0c0aef196bfd4bc43a2d9a/examples/visual_measurement/measurement.json">examples/visual_measurement/measurement.json</a>; <a href="https://github.com/HarperZ9/proof-surface/blob/3d5d945c758dcb78ca0c0aef196bfd4bc43a2d9a/src/proof_surface/visual_measurement/builder.py">src/proof_surface/visual_measurement/builder.py</a></p>
       </div></li>
       <li class="step" tabindex="-1" data-scene="k5" data-state="s"><div class="card">
         <span class="num">06</span><h3>The gate on an inflated claim</h3>
-        <p>A read-only capture never touched the display, so it may not claim a physical calibration. Mark the packet's calibration boundary as a physical-calibration claim, with no hardware measurement, no instrument and no mutation evidence, and validation rejects it, even though both measurements still read MATCH.</p>
+        <p>A physical-calibration claim needs a hardware measurement, an instrument and mutation evidence, and a read-only capture has none of the three. Mark the packet's calibration boundary as physical and validation rejects it, even though both measurements still read MATCH.</p>
         <p>The gate reads the structured boundary. The free-text claim line is recorded as written.</p>
         <p class="src">Source: <a href="https://github.com/HarperZ9/proof-surface/blob/3d5d945c758dcb78ca0c0aef196bfd4bc43a2d9a/src/proof_surface/visual_measurement/_calibration.py">src/proof_surface/visual_measurement/_calibration.py</a></p>
       </div></li>
@@ -260,7 +260,7 @@ ol.walkthrough p{margin:0 0 .3rem;max-width:44rem}
     <li><h3>Install</h3><p>Install from a checkout. Python 3.10 or newer.</p>
 <pre class="cmd"><code>$ git clone https://github.com/HarperZ9/proof-surface && cd proof-surface
 $ python -m pip install -e ".[test]"</code></pre></li>
-    <li><h3>First run: the demo</h3><p>The demo gates the same action with and without a budget.</p>
+    <li><h3>First run: the demo</h3><p>The demo gates the same action twice: once with a budget estimate, once with the estimate removed.</p>
 <pre class="cmd"><code>$ python examples/demo.py
 <span class="out">with budget       : allow
 without budget    : needs-human</span></code></pre></li>
@@ -276,13 +276,13 @@ crucible-thesis.json  packet.json  report.md</span></code></pre></li>
 </section>
 
 <section class="block wrap" aria-labelledby="limits">
-  <h2 id="limits">What it does not do</h2>
+  <h2 id="limits">Limits</h2>
   <ul class="limits">
-    <li>Proof Surface validates records. It grants no authority, executes no action and stores no private payload.</li>
+    <li>Proof Surface validates records. Granting authority, running actions and storing private payloads stay with your own systems.</li>
     <li>Decision helpers are advisory. The caller must enforce the decision.</li>
     <li>The delegation chain is keyless. It gives self-consistent integrity, and real anti-forgery needs an external anchor or per-hop signatures.</li>
-    <li>Honesty gates read structured fields. A free-text claim is recorded as written and is not parsed for overclaims.</li>
-    <li>The claim ledger reports provenance and declared conflicts. It does not decide which claim is true.</li>
+    <li>Honesty gates read structured fields. A free-text claim is recorded as written, and the gates leave its wording alone.</li>
+    <li>The claim ledger reports provenance and declared conflicts. Deciding which claim is true is the reader's step.</li>
   </ul>
   <p class="src">Source: README.md at 3d5d945, "Why it matters" and "The base contracts"; src/proof_surface/visual_measurement/_calibration.py</p>
 </section>
@@ -290,9 +290,9 @@ crucible-thesis.json  packet.json  report.md</span></code></pre></li>
 <section class="block wrap recall" aria-labelledby="recall">
   <h2 id="recall">Check what stuck</h2>
   <p class="measure">Answer each one in your head before you open it.</p>
-  <details><summary>check_action returns None. What does that mean?</summary><p>The action is allowed. Every denial comes back as an Issue naming the field that decided it.</p></details>
-  <details><summary>A gate request has no budget estimate. Why is the answer needs-human and not allow?</summary><p>The budget check returns unknown, and any unknown with no fail escalates to a person.</p></details>
-  <details><summary>Why can a keyless hash chain not stop a forger?</summary><p>Someone who rewrites the document can recompute every hash. Only an outside anchor or signatures fix that.</p></details>
+  <details><summary>What does check_action return for an allowed action?</summary><p>An empty result, Python's <code>None</code>. Every denial comes back as an Issue naming the field that decided it.</p></details>
+  <details><summary>A gate request arrives with its budget estimate missing. Why is the answer needs-human?</summary><p>The budget check returns unknown. With the other checks passing, an unknown sends the request to a person.</p></details>
+  <details><summary>Someone rewrites a document held in a keyless hash chain. What stops them?</summary><p>The chain alone lets them recompute every hash. An outside anchor or per-hop signatures are what catch the rewrite.</p></details>
   <details><summary>Both measurements read MATCH, yet the packet is rejected. Why?</summary><p>Its calibration boundary claims a physical calibration without a hardware measurement, an instrument, mutation evidence and a non-read-only packet.</p></details>
 </section>
 </main>
