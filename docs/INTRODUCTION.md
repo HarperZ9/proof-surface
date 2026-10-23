@@ -40,10 +40,11 @@ needs-human. Delegation verification returns `VALID` / `DENIED` /
 `UNVERIFIABLE`. Wedge verdicts are `MATCH` / `DRIFT` / `UNVERIFIABLE`. Nothing
 ever emits `TRUSTED`, `APPROVED`, or `AUTHORIZED`.
 
-**Default-deny, fail-closed.** An empty allowlist authorizes nothing. A check
-that cannot be positively confirmed becomes `unknown` and escalates to
-needs-human instead of passing. A measured value whose uncertainty interval
-straddles its threshold never silently deploys.
+**Default-deny, fail-closed.** An action is authorized when it is on the
+allowlist, so an empty allowlist denies everything. A check has to be confirmed
+to pass; anything less becomes `unknown` and escalates to needs-human. A
+measured value whose uncertainty interval straddles its threshold also goes to
+needs-human.
 
 **Contracts vs wedges.** The base contracts validate the shape of a record.
 The wedges go further: each builds a packet from domain evidence, derives a
@@ -95,9 +96,9 @@ validator answers with a precise path:
 [Issue(path='$.foo', message='unexpected field')]
 ```
 
-That rejection is the product. `additionalProperties` is false at every level
-of the hard-pinned contracts, so drift and smuggled fields are caught by
-shape, not by convention.
+That rejection is the product. Every level of the hard-pinned contracts sets
+`additionalProperties: false`, so the shape itself catches drift and smuggled
+fields.
 
 **Minutes three to five: run the API demo.**
 
@@ -106,11 +107,11 @@ python examples/demo.py
 ```
 
 It walks the authorization receipt (`check_action` allowing `read_file` and
-denying `delete_file`), the pre-execution gate (allow with a budget,
-needs-human without one), the evaluation contract (deploy on a clear pass,
-needs-human on an uncertain straddle), the claim ledger, and the delegation
-chain (`VALID`, `DENIED`, and honestly `UNVERIFIABLE` when signature
-assurance is demanded with no verifier).
+denying `delete_file`), the pre-execution gate (allow with a budget
+estimate, needs-human once the estimate is dropped), the evaluation contract
+(deploy on a clear pass, needs-human on a straddle), the claim ledger, and the
+delegation chain (`VALID`, `DENIED`, and `UNVERIFIABLE` when signature
+assurance is demanded and the verifier is absent).
 
 **Minutes five to eight: build a proof packet.**
 
